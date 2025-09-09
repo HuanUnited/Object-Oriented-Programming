@@ -107,6 +107,7 @@ void permute(char *a, int l, int r) {
   }
 }
 
+
 int main() {
   char str[] = "ABCDE";
   int n = strlen(str);
