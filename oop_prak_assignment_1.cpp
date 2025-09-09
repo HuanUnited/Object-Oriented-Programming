@@ -1,105 +1,116 @@
-#include <iostream>
-
-
-// Input matrix is a 2d matrix, where each row and column is equivalent of one city.
+// Changes made
 /*
-   a,b,c,d,e
- a[0,2,3,4,5] = 1
- b[1,0,3,4,5] = 2
- c[3,4,0,6,7] = 3
- d[7,8,9,0,1] = 4
- e[1,2,3,4,0] = 5
+1. Added print all permutations function.
+2. 2D matrix with a function calculates all possible permuation:
+eg: the matrix int **cities;
+   A B C
+A [0,2,3]
+B [3,0,5]
+C [4,3,0]
+--------> Read top down, left to right.
+Rows count as the from.
+Columns count as the to.
 
- each index (i,i) = 0, because the city distance is zero.
- 
- for each city traversed to and from, the corresponding index is the removed from the matrix.
- 
- the input is the number of cities (which means the number of rows and columns), matrix of distance (from what city to what city), and the index of the beginning city.
+First we should calculate all the possible permutations, and at the end of each
+permutation we calculate the result of the path. for example ABC A -> A to B to
+C back to A: 0 + 2 + 5 + 4.
 
- implementation of the bruteforce method would 1, for each element in a row, calculate its sum with an element in the next rows.
- so n! calculations for the whole of each element in the matrix.
+what if it is ACB: A -> A to C to B back to A:
 
- this means that in a euclidean coordinate system, we start at a point, and then move to another point, total distance travelled would be from this point to the next point, and then from the next to point to the next next point etc.
+would we need to use a recursive algorithm for solving this problem?
+Int Distance_Sum(char **cities, char *route){
+   // Reads the last char of the city string and the char before that, which would translate to two int values correlating the city and the matrix.
+   // For example A has index 0, B has index 1, C has index 2:
+   // distance_sum += cities[index_from][index_to];
 
- the output isn't important, but let's give the output of all of the hamiltonian cycles from the matrix (and their costs), and then choose out the best (shortest hamiltonian cycle) and it's cost.
+   // We can then create a loop so that it'll run from the beginning to the end of the string.
 
- we should also measure the runtime of the program itself, to see how long it takes to calculate.
+   for(int i = length_of_route; i >= 0, i--){
+   // Down loop because we're running until the end of the string.
+   // distance_sum += cities[route[i]][route[i-1]];
 
- we should also calculate how many calculations we need to do.
+   // Here arises the problem of turning a char in the route, to an actual number corresponding to that char.
+   // Suppose we can use something like a int TAB[255]; where each TAB[route[i]] would be given a value in that TAB[255];
+   // For example: TAB[A] = 1 = TAB[route[i] = A];
+   // Which then means before this we should have a in TAB array that alreadyhas all of the values corresponding to each city in the route.
+   // which then makes the formula into:
+   distance_sum += cities[TAB[route[i]]][TAB[route[i-1]]];
+   // This does feel like a handfull.
 
- to calculate the routes itself it would be a loop, something like
-    given a n by n matrix
-    int n; //number of cities
-    int matrix[n][n];
-    int hamiltonian_cycles = (n-1)!/2;
-    int total_cost[hamiltonian_cycles] = {0};
+   // The problem here is what if the names of the ciites are not given, how will we calculate all the possible permuations with just the 2D array alone?
 
-    int starting_city = {};
-    cout << "Input starting city: ";
-    cin << starting_city;
-    cout << endl;
-    //This would be the index of the starting city.
+   // First there is a better way to calculate the indexing which is by taking the char and minusing A.
+   }
 
+   We can also implement a global tracker for the best possible path and best score.
 
-    // This calculates for all indexes, how would we know which city?
-
-    **Then what if we have a matrix, where the line represents a city, and it's respective distance to the other cities?**
-
-    Take a look at the whiteboard: :/whiteboard.tldr -->
-
-    which means this loop will be reworked as such:
-    int row = starting_city;
-    int column{}; // would be equal to any index not equal to the starting city (which is not any index that has the value of zero)
-
-    for example, we start at b, from b we can go to any a,c,d,e
-    how do we calculate this, by adding it into the total_cost array: say += matrix[row][column_of_a]; //moves to a
-    then row = column_of_a; -> t.e row_of_a;
-    from row of a we have the choice to move to any row that hasn't been moved to before: which means we should have a hash-map for the cities that we've visited.
-    
-    bool visited[n] = {false};
-    if (visited[column_of_city] == true){continue;} //skip this city.
-    
-    have the loop go until we visit the next unvisited city: 
-    which means: while(visited[column_of_city] == true){continue;}
-
-    for each city visited, cities_visited++; until cities_visited == n; //number of cities, which then it stops.
+TBA:
+2. A function that swaps the selected city to the beginning of the city array. <for brute-force calculations> 
+2.1. A search function that searches for the city in that array.
+3. A distance score calculation method.
+4. A global best distance tracker.
 
 
-    for(int i = 0; i < n; i++){
-    matrix[row][column];
-    }
+}
 
-
-
- for(int i = 0; i < n; i++){
- printf("from index %d, we have these cycles:")
- for(int j = i ; j < n; j++){
-    if(matrix[i][j] == 0) continue;
-    cost[i] += matrix[i][j];
-    printf(" -> %d", j);
- }
- printf(". Which has the cost of %d.\n", cost[i]);
- }
-
- and this is the brute force method.
-
- Next thing is should i put each cycle into an array, and then give it out. This only applies for small n.
-
- Next is to implement a random matrix generator.
-
- Next is to implement the nearest neighbor solution, which means it will pick from the row, the smallest value.
 */
 
-class Matrix{
+#include <cstring>
+#include <iostream>
+using namespace std;
 
-};
+#define N 5
+int matrix[N][N] = {{0,2,3,5,7},
+                    {3,0,9,2,4},
+                    {1,3,0,4,2},
+                    {4,2,1,0,1},
+                    {6,3,1,5,0},
 
-class Input{
+                  
+                  };
+// A B C D E 
+int best_cost = 1e9;
+char best_path[100];
 
-};
+void swap(char *x, char *y) {
+  char temp = *x;
+  *x = *y;
+  *y = temp;
+}
 
+int calcCost(char *route, int len) {
+  int sum = 0;
+  for (int i = 0; i < len - 1; i++) {
+    int from = route[i] - 'A';
+    int to = route[i + 1] - 'A';
+    sum += matrix[from][to];
+  }
+  // calculates the whole cycle, by returning to the starting city.
+  sum += matrix[route[len - 1] - 'A'][route[0] - 'A'];
+  return sum;
+}
 
-int main(){
+void permute(char *a, int l, int r) {
+  if (l == r) {
+    int cost = calcCost(a, r + 1);
+    cout << a << " cost=" << cost << endl;
+    if (cost < best_cost) {
+      best_cost = cost;
+      strcpy(best_path, a);
+    }
+  } else {
+    for (int i = l; i <= r; i++) {
+      swap((a + l), (a + i));
+      permute(a, l + 1, r);
+      swap((a + l), (a + i)); // backtrack
+    }
+  }
+}
 
-
+int main() {
+  char str[] = "ABCDE";
+  int n = strlen(str);
+  permute(str, 0, n - 1);
+  cout << "Best path = " << best_path << " cost=" << best_cost << endl;
+  return 0;
 }
