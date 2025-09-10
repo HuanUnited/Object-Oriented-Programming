@@ -14,6 +14,7 @@ encapsulated.
 3. Changed time formatting value to long long.
 4. Fixes to the permutation method to allow for an enclosed area.
 5. Better result printing.
+6. City indexing fixes for better output results.
 
 */
 
@@ -38,7 +39,7 @@ struct Result {
     cout << "Solver best cost: " << cost << endl;
     cout << "Solver best path: ";
     for (int i = 0; i < len; i++)
-      cout << path[i] << " ";
+      cout << path[i] + 1 << " ";
     cout << endl;
     cout << "Solver time : " << time_ms << " ms" << endl;
     delete[] path; // caller frees returned path
@@ -463,11 +464,12 @@ int main() {
   cout << "Input starting city: ";
   cin >> startIndex;
   cout << endl;
-  if (startIndex < 0 || startIndex >= number_of_cities) {
-    cout << "Error: start index must be in [0," << number_of_cities - 1 << "]"
+  if (startIndex < 1 || startIndex >= number_of_cities) {
+    cout << "Error: start index must be in [1," << number_of_cities << "]"
          << endl;
     return 1;
   }
+  startIndex -= 1;
 cout<< "Greedy Results: " << endl;
   Result res1 = Cities1.solveGreedy(startIndex);
     res1.printRes();
