@@ -1,25 +1,51 @@
 // Interation 4 - Goals:
 /*
 1. Implementing the Greedy Algorithm <DONE>
-2. Implementing the timer for each result.
-3. Implementing a new way for any Algo to solve the same matrix.
+2. Implementing the timer for each result. <DONE>
+3. Implementing a new way for any Algo to solve the same matrix. <NEXT> -
+Duplicate the matrix and then delete.
+
+Additional changes:
+1. Removed current_solver_best_path/cost from City Solver, it's kind of
+redundant to have an additional value saved within the solver, this can be saved
+within the matrix.
+2. Due to the removal of the above mentioned, the permutation method is now
+encapsulated.
+3. Changed time formatting value to long long.
+4. Fixes to the permutation method to allow for an enclosed area.
+5. Better result printing.
 
 */
 
+#include <chrono>
 #include <cstddef>
 #include <iostream>
 #include <ostream>
 #include <stdlib.h>
 #include <time.h>
-using std::cin, std::cout, std::endl;
+using std::cin, std::cout, std::endl, std::chrono::steady_clock;
 #define MAX 1000
 
 struct Result {
   int *path; // allocated with new int[len]
   int len;
   int cost;
-  double time_ms;
+  long long time_ms;
   Result() : path(nullptr), len(0), cost(0), time_ms(0.0) {}
+
+  void printRes(){
+    if (path != nullptr) {
+    cout << "Solver best cost: " << cost << endl;
+    cout << "Solver best path: ";
+    for (int i = 0; i < len; i++)
+      cout << path[i] << " ";
+    cout << endl;
+    cout << "Solver time : " << time_ms << " ms" << endl;
+    delete[] path; // caller frees returned path
+  } else {
+    cout << "No result (n==0?)" << endl;
+  }
+  }
 };
 
 class CityMatrix {
@@ -38,7 +64,7 @@ public:
         if (i == j) {
           m_distance_matrix[i][j] = 0; // diagonal = 0
         } else {
-          int num = rand() % 20 + 1; // 1..20 (avoid 0 except diagonal)
+          int num = rand() % 10 + 1; // 1..20 (avoid 0 except diagonal)
           m_distance_matrix[i][j] = num;
         }
       }
@@ -239,9 +265,6 @@ public:
 
 class CitySolver {
   CityMatrix *matrix = nullptr;
-  int current_solver_best_cost{};
-  int *current_solver_best_path = nullptr;
-  int *cities = nullptr;
 
 public:
   void printMatrix() { matrix->printMatrix(); }
@@ -279,19 +302,20 @@ public:
     return sum;
   }
 
-  void permute(int *current_path, int l, int r) {
+  void permute(int *current_path, int l, int r, int *solver_path,
+               int *solver_cost) {
     if (l == r) {
       int cost = calcCost(current_path, r + 1);
-      if (cost < current_solver_best_cost) {
-        current_solver_best_cost = cost;
+      if (cost < *solver_cost) {
+        *solver_cost = cost; // <-- Correct: update the VALUE, not the pointer
         // copy current_path into solver best buffer
         for (int i = 0; i < matrix->getSize(); i++)
-          current_solver_best_path[i] = current_path[i];
+          solver_path[i] = current_path[i];
       }
     } else {
       for (int i = l; i <= r; i++) {
         swapInts(&current_path[l], &current_path[i]);
-        permute(current_path, l + 1, r);
+        permute(current_path, l + 1, r, solver_path, solver_cost);
         swapInts(&current_path[l], &current_path[i]); // backtrack
       }
     }
@@ -301,63 +325,61 @@ public:
   // so that they can freely manipulate it instead touching the original matrix.
 
   // Solver Methods:
-  Result bruteForce(int startIndex) {
+  Result solveBruteForce(int startIndex) {
+    auto start = steady_clock::now();
     Result out;
     int n = matrix->getSize();
     if (n <= 0)
       return out;
 
     // prepare city array
-    cities = new int[n];
+    int *cities = new int[n];
     for (int i = 0; i < n; i++)
       cities[i] = i;
-    cout << "List of cities:";
-    for (int i = 0; i < n; i++)
-      cout << " " << cities[i];
-    cout << endl;
 
-    // init solver best
-    current_solver_best_cost = MAX;
-    delete[] current_solver_best_path; // guard
-    current_solver_best_path = new int[n];
+    // init brute best path and cost
+    int *brute_best_path = new int[n];
+    int brute_best_cost = MAX;
 
     // move chosen start to front (reorders matrix), and align cities[]
     matrix->moveCityToFront(startIndex);
     swapCityArray(cities, 0, startIndex);
-    matrix->printMatrix();
 
     // search all permutations with city 0 fixed
-    permute(cities, 1, n - 1);
+    permute(cities, 1, n - 1, brute_best_path, &brute_best_cost);
 
     // build Result to return; allocate fresh path for caller to own
     out.len = n;
-    out.cost = current_solver_best_cost;
+    out.cost = brute_best_cost;
     out.path = new int[n];
     for (int i = 0; i < n; i++)
-      out.path[i] = current_solver_best_path[i];
+      out.path[i] = brute_best_path[i];
 
-    // clean up solver internals; returned Result owns the path
-    delete[] current_solver_best_path;
-    current_solver_best_path = nullptr;
-    current_solver_best_cost = MAX;
+    // Time Tracking
+    auto end = steady_clock::now();
+    auto duration = end - start;
+    out.time_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 
     delete[] cities;
+
     return out;
   }
 
   Result solveGreedy(int startIndex) {
+    auto start = steady_clock::now();
     int n = matrix->getSize();
     Result out; // Assuming Result has members for path and cost
 
     if (n <= 0) {
-        return out;
+      return out;
     }
 
-    // Use std::vector for safe dynamic memory management
+    // Greedy values init
     int *greedy_path = new int[n];
     bool *visited_cities = new bool[n];
-    for (int i = 0; i < n; i++){
-        visited_cities[i] = false;
+    for (int i = 0; i < n; i++) {
+      visited_cities[i] = false;
     }
     int greedy_cost = 0;
     int current_city = startIndex;
@@ -368,48 +390,50 @@ public:
 
     // Loop until all cities have been visited
     for (int i = 0; i < n - 1; ++i) {
-        int smallest_cost = 10000;
-        int next_city = -1;
+      int smallest_cost = 10000;
+      int next_city = -1;
 
-        // Find the next unvisited city with the smallest cost
-        for (int j = 0; j < n; ++j) {
-            // Check if city 'j' is unvisited and has a smaller cost
-            if (!visited_cities[j] && matrix->at(current_city, j) < smallest_cost) {
-                smallest_cost = matrix->at(current_city, j);
-                next_city = j;
-            }
+      // Find the next unvisited city with the smallest cost
+      for (int j = 0; j < n; ++j) {
+        // Check if city 'j' is unvisited and has a smaller cost
+        if (!visited_cities[j] && matrix->at(current_city, j) < smallest_cost) {
+          smallest_cost = matrix->at(current_city, j);
+          next_city = j;
         }
+      }
 
-        // Add the next city to the path
-        if (next_city != -1) {
-            greedy_path[i + 1] = next_city;
-            visited_cities[next_city] = true;
-            greedy_cost += smallest_cost;
-            current_city = next_city;
-        } else {
-            break; //if matrix is invalid
-        }
+      // Add the next city to the path
+      if (next_city != -1) {
+        greedy_path[i + 1] = next_city;
+        visited_cities[next_city] = true;
+        greedy_cost += smallest_cost;
+        current_city = next_city;
+      } else {
+        break; // if matrix is invalid
+      }
     }
 
     // Add cost to return to starting city to complete the cycle
     greedy_cost += matrix->at(current_city, startIndex);
-
-    cout << endl;
-    cout << "Greedy cost: " << greedy_cost << endl;
 
     // Build the Result object to return
     out.len = n;
     out.cost = greedy_cost;
     out.path = new int[n];
     for (int i = 0; i < n; i++)
-        out.path[i] = greedy_path[i];
-    
-    delete [] visited_cities;
-    delete [] greedy_path;
+      out.path[i] = greedy_path[i];
+
+    // Time Tracking
+    auto end = steady_clock::now();
+    auto duration = end - start;
+    out.time_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+
+    delete[] visited_cities;
+    delete[] greedy_path;
 
     return out;
-}
-
+  }
 };
 
 int main() {
@@ -444,19 +468,14 @@ int main() {
          << endl;
     return 1;
   }
+cout<< "Greedy Results: " << endl;
+  Result res1 = Cities1.solveGreedy(startIndex);
+    res1.printRes();
 
-  Result res = Cities1.solveGreedy(startIndex);
+cout<< "============" << endl;
+cout<< "Brute Force Results: " << endl;
+  Result res2 = Cities1.solveBruteForce(startIndex);
+    res2.printRes();
 
-  if (res.path != nullptr) {
-    cout << "Solver best cost: " << res.cost << endl;
-    cout << "Solver best path: ";
-    for (int i = 0; i < res.len; i++)
-      cout << res.path[i] << " ";
-    cout << endl;
-    // let matrix keep canonical best if it's better
-    delete[] res.path; // caller frees returned path
-  } else {
-    cout << "No result (n==0?)" << endl;
-  }
   return 0;
 }
