@@ -16,14 +16,14 @@ public:
     void outputTriangle() const;
 
     // Operators
-    Triangle operator*(int k) const;
+    Triangle operator*(const int k) const;
     bool operator==(const Triangle &other) const;
 
     // Getter&Setters
-    void setX(double x);
-    void setY(double y);
-    void setHeight(double h);
-    void setBase(double b);
+    void setX(const double x);
+    void setY(const double y);
+    void setHeight(const double h);
+    void setBase(const double b);
 
     double getX() const;
     double getY() const;
@@ -36,7 +36,6 @@ public:
     // GeoGebra
     double getPerimeter() const;
     double getArea() const;
-    double getSemiPerimeter() const;
     double getSideHeight() const;
     double getCircumradius() const;
     void getCircumcenter() const;
@@ -74,22 +73,52 @@ void Triangle::outputTriangle() const {
 }
 
 // Operators
-Triangle Triangle::operator*(int k) const {
+Triangle Triangle::operator*(const int k) const {
     Triangle scaled = *this;
     scaled.m_base *= k;
     scaled.m_height *= k;
     return scaled;
 }
 
-bool Triangle::operator==(const Triangle &other) const {
-    return ((m_base == other.m_base) && (m_height == other.m_height));
+bool Triangle::operator==(const Triangle &other) const { // If the other triangle can be shifted so that it sits right on top of the given triangle,
+    // then they are translated <если одну прямуголнику можем двигать так, чтобы она сидела прямо над другой, и есть одинаковые размерности, то является параллелный перенос.
+    // same dimensions
+    if (m_base != other.m_base) return false; // 1e-6 = epsilon
+    if (m_height != other.m_height) return false;
+
+    // compute this triangle’s vertices (считать вершины)
+    double Tx = m_coord_x + m_base / 2.0; // top vertex
+    double Ty = m_coord_y;
+    double Lx = m_coord_x; // left vertex
+    double Ly = m_coord_y + m_height;
+    double Rx = m_coord_x + m_base; // right vertex
+    double Ry = m_coord_y + m_height;
+
+    // compute other triangle’s vertices
+    double Tx2 = other.m_coord_x + other.m_base / 2.0;
+    double Ty2 = other.m_coord_y;
+    double Lx2 = other.m_coord_x;
+    double Ly2 = other.m_coord_y + other.m_height;
+    double Rx2 = other.m_coord_x + other.m_base;
+    double Ry2 = other.m_coord_y + other.m_height;
+
+    // translation vector between top vertices // векторы переноса
+    double dx = Tx2 - Tx;
+    double dy = Ty2 - Ty;
+
+    // check if all vertices align under the same shift
+    return (Lx + dx - Lx2 <= 1e-6) &&
+            (Ly + dy - Ly2 <= 1e-6) &&
+            (Rx + dx - Rx2 <= 1e-6) &&
+            (Ry + dy - Ry2 <= 1e-6);
 }
 
+
 // Setter
-void Triangle::setX(double x) { m_coord_x = x; }
-void Triangle::setY(double y) { m_coord_y = y; }
-void Triangle::setHeight(double h) { m_height = h; }
-void Triangle::setBase(double b) { m_base = b; }
+void Triangle::setX(const double x) { m_coord_x = x; }
+void Triangle::setY(const double y) { m_coord_y = y; }
+void Triangle::setHeight(const double h) { m_height = h; }
+void Triangle::setBase(const double b) { m_base = b; }
 
 // Getter
 double Triangle::getX() const { return m_coord_x; }
@@ -103,7 +132,6 @@ double Triangle::getBaseAngle() const { return atan((m_base / 2) / m_height) * 1
 // GeoGebra
 double Triangle::getPerimeter() const { return 2 * getSide() + m_base; }
 double Triangle::getArea() const { return 0.5 * m_base * m_height; }
-double Triangle::getSemiPerimeter() const { return (m_base + 2 * getSide()) / 2.0; }
 double Triangle::getSideHeight() const { return (2 * getArea() / getSide()); }
 
 double Triangle::getCircumradius() const {
@@ -141,7 +169,7 @@ Triangle::Triangle(int x, int y, double height, double base) {
 // ---------------- Main ----------------
 int main() {
     Triangle t1(0,0,5,6);
-    Triangle t2(0,0,5,6);
+    Triangle t2(6,8,4,6);
 
     t1.outputTriangle();
     cout << "Area: " << t1.getArea() << endl;
@@ -150,6 +178,7 @@ int main() {
 
     // Test operator==
     if (t1 == t2) cout << "Triangles are equal!\n";
+    else cout <<"Triangles are not equal! \n";
 
     // Test operator*
     Triangle t3 = t1 * 2;
