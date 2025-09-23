@@ -1,124 +1,153 @@
 // Implement Dynamic Array (minimal reimplementation of std::vector)
 
 #include <bits/stdc++.h>
+#include <cinttypes>
 using std::cin, std::cout, std::endl;
-template <typename T> class DynamicArray {
-  // arr is the integer pointer
-  // which stores the address of our vector
-  T *arr;
+template <typename T> class  DynamicArray {
 
-  // capacity is the total storage
-  // capacity of the vector
-  int capacity;
-
-  // size is the number of elements
-  // currently present in the vector
-  int size;
 
 public:
-  DynamicArray() {
-    arr = new T[1];
-    capacity = 1;
-    size = 0;
+
+
+  void shrink() {
+    if (m_size >= m_capacity) {
+      return;
+    } else {
+      T *temp = new T[m_size];
+      for (int i = 0; i < m_capacity; i++) {
+        temp[i] = m_arr[i];
+      }
+      delete[] m_arr;
+      m_capacity = m_size;
+      m_arr = temp;
+    }
   }
-  ~DynamicArray() { delete[] arr; }
+
+  void update(int capacity) {
+    if (m_size >= m_capacity) {
+      return;
+    } else {
+      T *temp = new T[capacity];
+      for (int i = 0; i < m_capacity; i++) {
+        temp[i] = m_arr[i];
+      }
+      delete[] m_arr;
+      m_capacity = capacity;
+      m_arr = temp;
+    }
+  }
+
+  void swap_member(T x, T y) {
+    int temp = y;
+    y = x;
+    x = temp;
+  }
+
+  // Swaps all the elements of this array and the other array.
+  // Update the capacity of both arrays to the value of the bigger array
+  // Swaps the elements
+  // (Possibly) shrink the arrays.
+  void swap(DynamicArray &other) {
+    if (m_capacity > other.m_capacity) {
+      other.update(m_capacity);
+      other.m_size = m_size;
+    } else {
+      update(other.m_capacity);
+      m_size = other.m_size;
+    }
+    for (int i = 0; i < m_capacity; i++) {
+      swap_member(m_arr[i], other.m_arr[i]);
+    }
+  }
 
   // Function to add an element at the last
   void push(T data) {
-    if (size == capacity) {
-      T *temp = new T[2 * capacity];
+    if (m_size == m_capacity) {
+      T *temp = new T[2 * m_capacity];
 
-      for (int i = 0; i < capacity; i++) {
-        temp[i] = arr[i];
+      for (int i = 0; i < m_capacity; i++) {
+        temp[i] = m_arr[i];
       }
-      delete[] arr;
-      capacity *= 2;
-      arr = temp;
+      delete[] m_arr;
+      m_capacity *= 2;
+      m_arr = temp;
     }
 
-    arr[size] = data;
-    size++;
+    m_arr[m_size] = data;
+    m_size++;
   }
 
   // function to add element at any index
   void push(T data, int index) {
-    if (index == capacity)
+    if (index == m_capacity)
       push(data);
     else
-      arr[index] = data;
+      m_arr[index] = data;
   }
 
   // function to extract element at any index
   T at(int index) {
-    if (index < size)
-      return arr[index];
+    if (index < m_size)
+      return m_arr[index];
     return -1;
   }
 
   // function to delete last element
-  void pop() { size--; }
+  void pop() { m_size--; }
 
   // function to get size of the vector
-  int getSize() { return size; }
+  int getSize() { return m_size; }
 
   // function to get capacity of the vector
-  int getCapacity() { return capacity; }
+  int getCapacity() { return m_capacity; }
 
   // function to print array elements
   void print() {
-    for (int i = 0; i < size; i++) {
-      cout << arr[i] << " ";
+    for (int i = 0; i < m_size; i++) {
+      cout << m_arr[i] << " ";
     }
     cout << endl;
+  }
+
+  void input() {
+    int size{};
+    cout << "Input size of Array: ";
+    cin >> size;
+    cout << '\n' << "Input elements of the Array: ";
+    for (int i = 0; i < size; i++) {
+      int temp{};
+      cin >> temp;
+      push(temp);
+    }
   }
 };
 
 // Driver code
 int main() {
   DynamicArray<int> v;
-  DynamicArray<char> v1;
-  v.push(10);
-  v.push(20);
-  v.push(30);
-  v.push(40);
-  v.push(50);
-  v1.push(71);
-  v1.push(72);
-  v1.push(73);
-  v1.push(74);
 
-  cout << "Vector size : " << v.getSize() << endl;
-  cout << "Vector capacity : " << v.getCapacity() << endl;
+  cout << "Size: " << v.getSize() << '\n';
+  cout << "Capacity: " << v.getCapacity() << '\n';
 
-  cout << "Vector elements : ";
+  v.input();
   v.print();
+  cout << "Size: " << v.getSize() << '\n';
+  cout << "Capacity: " << v.getCapacity() << '\n';
 
-  v.push(100, 1);
+  v.shrink();
+  cout << "Size: " << v.getSize() << '\n';
+  cout << "Capacity: " << v.getCapacity() << '\n';
 
-  cout << "\nAfter updating 1st index" << endl;
+  cout<< "Copy Constructor";
+    DynamicArray<int> v2(v);
+    v2.print();
+    v2.push(4);
+    v2.push(5);
 
-  cout << "Vector elements of type int : " << endl;
-  v.print();
-  // This was possible because we used templates
-  cout << "Vector elements of type char : " << endl;
-  v1.print();
-  cout << "Element at 1st index of type int: " << v.at(1) << endl;
-  cout << "Element at 1st index of type char: " << v1.at(1) << endl;
-
-  v.pop();
-  v1.pop();
-
-  cout << "\nAfter deleting last element" << endl;
-
-  cout << "Vector size of type int: " << v.getSize() << endl;
-  cout << "Vector size of type char: " << v1.getSize() << endl;
-  cout << "Vector capacity of type int : " << v.getCapacity() << endl;
-  cout << "Vector capacity of type char : " << v1.getCapacity() << endl;
-
-  cout << "Vector elements of type int: ";
-  v.print();
-  cout << "Vector elements of type char: ";
-  v1.print();
+  cout<<"Swap: "<< '\n';
+    v.swap(v2);
+    v.print();
+    v2.print();
 
   return 0;
 }
