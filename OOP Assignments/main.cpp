@@ -4,7 +4,7 @@ using std::cout;
 using std::endl;
 
 void printArray(const DynamicArray &arr, const std::string &name) {
-  cout << name << " = " << arr << ", size = " << arr.size() << endl;
+  cout << name << " = " << arr << ", size = " << arr.size() << ", capacity = " << arr.capacity()<< endl;
 }
 
 int main() {
@@ -99,9 +99,13 @@ int main() {
 
   // --- Sorting ---
   cout << "\n-- Sorting --" << endl;
-  int array[] = {1, 2,   32, 332, 534, 5,  6,   5476, 45, 756, 7,
-                 4, 124, 12, 312, 4,   46, 546, 455,  2,  432, 34};
-  DynamicArray k{array, 21};
+//   int array[] = {1, 2,   32, 332, 534, 5,  6,   5476, 45, 756, 7,
+//                  4, 124, 12, 312, 4,   46, 546, 455,  2,  432, 34};
+//   DynamicArray k{array, 21};
+
+    DynamicArray k{1,2,3,2,4,5,3,5,6,7,8};
+    k.push_back(1);
+
   printArray(k, "k before sort");
   k.qsort();
   printArray(k, "k after sort");
