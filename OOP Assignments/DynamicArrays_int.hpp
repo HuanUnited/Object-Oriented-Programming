@@ -1,52 +1,6 @@
-// T&& - rvalue refference, can use this to treat an lvalue like an rvalue.
 /*
-Change Log:
 
-Constructors: default, from raw array (with size_type), copy and move
-constructors are implemented.
-
-Destructor: implemented and safe.
-
-Size/swap: size() and capatacity() uses size_t for more standardized
-implementation.
-
-Search / find: find(const T&) returns index or -1 when not found.
-
-I/O: streaming operator<< and operator>> implemented (simple but standard).
--- set/getconsole still exists
-
-Sort: uses std::sort instead of implementing quicksort function
--- self-implemented qsort still exists
-
-Insert by index: insert_at(index, value) returns bool and rejects invalid
-indices.
-
-Delete by index and by value: erase_at returns bool, pop_first removes first
-occurrence, pop_all removes all.
-
-Max/min: min() / max() return T and throw on empty (safer than UB).
-
-Iterators: begin()/end() return iterators; end() points one past the last
-element.
-
-Insert before iterator: insert(iterator pos, const T&) implemented.
-
-Erase with iterators: erase(iterator) and erase(iterator, iterator) implemented
-with bounds checks.
-
-Move constructor and move assignment: implemented and marked noexcept where
-appropriate.
-
-Operators: operator[], copy/move assignment, +=/+ for both element and array
-concatenation, and ==/!= are implemented.
-
-Memory management: reserve and shrink_to_fit implemented; doubling strategy for
-growth to maintain amortized push time.
-
-Bug fixes:
-Move copy constructor turns capacity into 0 - wrong
-Move copy constructor turns array pointer to null array - wrong.
-Swap function parameters were wrong.
+Dynamic Arrays int
 
 */
 #pragma once
@@ -59,27 +13,26 @@ Swap function parameters were wrong.
 #include <utility>
 using std::cin, std::cout, std::endl;
 
-template <typename T> class DynamicArray {
+class DynamicArray {
 public:
-  using value_type = T;
-  using iterator = T *;
-  using const_iterator = const T *;
+  using iterator = int *;
+  using const_iterator = const int *;
   using size_type = std::size_t; // Better than unsigned int
 
   // --- constructors / destructor ---
 
   // Default Constructor
-  DynamicArray() : m_arr(new T[1]), m_capacity(1), m_size(0) {}
+  DynamicArray() : m_arr(new int[1]), m_capacity(1), m_size(0) {}
   // Array Constructor
-  DynamicArray(const T *arr, size_type count)
+  DynamicArray(const int *arr, size_type count)
       : m_arr(nullptr), m_capacity(0), m_size(0) {
     if (count == 0) {
-      m_arr = new T[1];
+      m_arr = new int[1];
       m_capacity = 1;
       m_size = 0;
       return;
     }
-    m_arr = new T[count];
+    m_arr = new int[count];
     m_capacity = count;
     m_size = count;
     for (size_type i = 0; i < count; ++i)
@@ -87,7 +40,7 @@ public:
   }
   // Copy Constructor
   DynamicArray(const DynamicArray &other)
-      : m_arr(new T[other.m_capacity]), m_capacity(other.m_capacity),
+      : m_arr(new int[other.m_capacity]), m_capacity(other.m_capacity),
         m_size(other.m_size) {
     for (size_type i = 0; i < m_size; ++i)
       m_arr[i] = other.m_arr[i];
@@ -95,7 +48,7 @@ public:
   // Move Constructor
   DynamicArray(DynamicArray &&other) noexcept
       : m_arr(other.m_arr), m_capacity(other.m_capacity), m_size(other.m_size) {
-    other.m_arr = new T[1];
+    other.m_arr = new int[1];
     other.m_capacity = 1;
     other.m_size = 0;
   }
@@ -116,15 +69,15 @@ public:
 
   // --- element access ---
   // operator[] no bounds check (like std::vector)
-  T &operator[](size_type index) { return m_arr[index]; }
-  const T &operator[](size_type index) const { return m_arr[index]; }
+  int &operator[](size_type index) { return m_arr[index]; }
+  const int &operator[](size_type index) const { return m_arr[index]; }
   // at with bounds check
-  T &at(size_type index) {
+  int &at(size_type index) {
     if (index >= m_size)
       throw std::out_of_range("DynamicArray::at: index out of range");
     return m_arr[index];
   }
-  const T &at(size_type index) const {
+  const int &at(size_type index) const {
     if (index >= m_size)
       throw std::out_of_range("DynamicArray::at: index out of range");
     return m_arr[index];
@@ -134,7 +87,7 @@ public:
   void reserve(size_type newCapacity) {
     if (newCapacity <= m_capacity)
       return;
-    T *tmp = new T[newCapacity];
+    int *tmp = new int[newCapacity];
     for (size_type i = 0; i < m_size; ++i)
       tmp[i] = std::move(m_arr[i]); // std::move takes the value from the box,
                                     // puts it into a new box.
@@ -149,7 +102,7 @@ public:
     size_type newCap =
         m_size == 0 ? 1 : m_size; // case check for the capacity, if it is equal
                                   // to zero then the cap is 1, else = size
-    T *tmp = new T[newCap];
+    int *tmp = new int[newCap];
     for (size_type i = 0; i < m_size; ++i)
       tmp[i] = std::move(m_arr[i]);
     delete[] m_arr;
@@ -159,19 +112,19 @@ public:
 
   void clear() noexcept { m_size = 0; }
 
-  void push_back(const T &value) {
+  void push_back(const int &value) {
     if (m_size == m_capacity)
       reserve(m_capacity * 2);
     m_arr[m_size++] = value;
   }
-  void push_back(T &&value) {
+  void push_back(int &&value) {
     if (m_size == m_capacity)
       reserve(m_capacity * 2);
     m_arr[m_size++] = std::move(value);
   }
 
   // insert by index: returns true on success, false if index invalid
-  bool insert_at(size_type index, const T &value) {
+  bool insert_at(size_type index, const int &value) {
     if (index > m_size)
       return false; // allow insert at end (index == size)
     if (m_size == m_capacity)
@@ -185,7 +138,7 @@ public:
   }
 
   // insert before iterator
-  iterator insert(iterator pos, const T &value) {
+  iterator insert(iterator pos, const int &value) {
     size_type idx = pos - m_arr;
     if (idx > m_size)
       idx = m_size; // clamp - stops from inserting past boundaries
@@ -228,7 +181,7 @@ public:
   }
 
   // pop first occurrence by value — returns true if something was removed
-  bool pop_first(const T &value) {
+  bool pop_first(const int &value) {
     int idx = find(value);
     if (idx == -1)
       return false;
@@ -239,7 +192,7 @@ public:
   }
 
   // remove all occurrences
-  void pop_all(const T &value) {
+  void pop_all(const int &value) {
     size_type write = 0;
     for (size_type read = 0; read < m_size; ++read) {
       if (!(m_arr[read] == value)) {
@@ -250,7 +203,7 @@ public:
   }
 
   // find — returns index of first occurrence or -1
-  int find(const T &value) const noexcept {
+  int find(const int &value) const noexcept {
     for (size_type i = 0; i < m_size; ++i)
       if (m_arr[i] == value)
         return static_cast<int>(i);
@@ -279,19 +232,19 @@ public:
   }
 
   // min / max — throw if empty
-  T min() const {
+  int min() const {
     if (m_size == 0)
       throw std::runtime_error("min(): empty array");
-    T best = m_arr[0];
+    int best = m_arr[0];
     for (size_type i = 1; i < m_size; ++i)
       if (m_arr[i] < best)
         best = m_arr[i];
     return best;
   }
-  T max() const {
+  int max() const {
     if (m_size == 0)
       throw std::runtime_error("max(): empty array");
-    T best = m_arr[0];
+    int best = m_arr[0];
     for (size_type i = 1; i < m_size; ++i)
       if (m_arr[i] > best)
         best = m_arr[i];
@@ -302,7 +255,7 @@ public:
   DynamicArray &operator=(const DynamicArray &other) {
     if (this == &other)
       return *this;
-    T *newBuf = new T[other.m_capacity];
+    int *newBuf = new int[other.m_capacity];
     for (size_type i = 0; i < other.m_size; ++i)
       newBuf[i] = other.m_arr[i];
     delete[] m_arr;
@@ -325,12 +278,12 @@ public:
     return *this;
   }
 
-  DynamicArray &operator+=(const T &value) { // Push one element
+  DynamicArray &operator+=(const int &value) { // Push one element
     push_back(value);
     return *this;
   }
 
-  DynamicArray operator+(const T &value) const { // Push to new array
+  DynamicArray operator+(const int &value) const { // Push to new array
     DynamicArray tmp(*this);
     tmp.push_back(value);
     return tmp;
@@ -370,7 +323,7 @@ public:
     cout << "Input number of elements: ";
     size_type capacity;
     cin >> capacity;
-    T temp{};
+    int temp{};
     cout << '\n' << "Input values: ";
     for (size_type i = 0; i < capacity; i++) {
       cin >> temp;
@@ -409,7 +362,7 @@ public:
     if (a.m_capacity < n)
       a.reserve(n);
     for (size_type i = 0; i < n; ++i) {
-      T tmp;
+      int tmp;
       is >> tmp;
       a.push_back(tmp);
     }
@@ -417,10 +370,10 @@ public:
   }
 
   // Quick Sort implementation.
-  int partition(T arr[], size_type low, size_type high) {
+  int partition(int arr[], size_type low, size_type high) {
     using std::swap;
     // Initialize pivot to be the first element
-    T p = arr[low];
+    int p = arr[low];
     size_type i = low;
     size_type j = high;
 
@@ -438,14 +391,14 @@ public:
         j--;
       }
       if (i < j) {
-        swap(arr[i], arr[j]);
+        std::swap(arr[i], arr[j]);
       }
     }
-    swap(arr[low], arr[j]);
+    std::swap(arr[low], arr[j]);
     return j;
   }
 
-  void quickSort(T arr[], size_type low, size_type high) {
+  void quickSort(int arr[], size_type low, size_type high) {
     if (low < high) {
       // call partition function to find Partition Index
       int pi = partition(arr, low, high);
@@ -458,7 +411,7 @@ public:
   }
 
 private:
-  T *m_arr;
+  int *m_arr;
   size_type m_capacity;
   size_type m_size;
 };
