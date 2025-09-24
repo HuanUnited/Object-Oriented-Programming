@@ -265,14 +265,15 @@ public:
     return *this;
   }
 
+
   DynamicArray &operator=(DynamicArray &&other) noexcept {
     if (this != &other) {
       delete[] m_arr;
       m_arr = other.m_arr;
       m_capacity = other.m_capacity;
       m_size = other.m_size;
-      other.m_arr = nullptr;
-      other.m_capacity = 0;
+      other.m_arr = new int[1];
+      other.m_capacity = 1;
       other.m_size = 0;
     }
     return *this;
@@ -332,42 +333,13 @@ public:
   };
 
   void getconsole() {
-    cout << "Elements:";
+    cout << "[";
     for (size_type i = 0; i < m_size; i++) {
-      cout << " " << m_arr[i];
+      if (i) cout << ", ";
+      cout << m_arr[i];
     }
-    cout << '\n'
-         << "Size " << m_size << '\n'
-         << "Capacity: " << m_capacity << '\n';
+    cout << "]" << '\n';
   };
-
-  // streaming: output and input (simple) // for example cout << a;
-  friend std::ostream &operator<<(std::ostream &os, const DynamicArray &a) {
-    os << "[";
-    for (size_type i = 0; i < a.m_size; ++i) {
-      if (i)
-        os << ", ";
-      os << a.m_arr[i];
-    }
-    os << "]";
-    return os;
-  }
-
-  // simple input: read n then n elements
-  friend std::istream &operator>>(std::istream &is, DynamicArray &a) {
-    size_type n;
-    if (!(is >> n))
-      return is;
-    a.clear();
-    if (a.m_capacity < n)
-      a.reserve(n);
-    for (size_type i = 0; i < n; ++i) {
-      int tmp;
-      is >> tmp;
-      a.push_back(tmp);
-    }
-    return is;
-  }
 
   // Quick Sort implementation.
   int partition(int arr[], size_type low, size_type high) {
@@ -412,6 +384,34 @@ public:
 
 private:
   int *m_arr;
-  size_type m_capacity;
+  size_type m_capacity; //std::size_t
   size_type m_size;
 };
+
+  // streaming: output and input (simple) // for example cout << a;
+  inline std::ostream& operator<<(std::ostream &os, const DynamicArray &a) {
+    os << "[";
+    for (size_t i = 0; i < a.size(); ++i) {
+      if (i)
+        os << ", ";
+      os << a.at(i);
+    }
+    os << "]";
+    return os;
+  }
+
+  // simple input: read n then n elements
+  std::istream& operator>>(std::istream &is, DynamicArray &a) {
+    size_t n;
+    if (!(is >> n))
+      return is;
+    a.clear();
+    if (a.capacity() < n)
+      a.reserve(n);
+    for (size_t i = 0; i < n; ++i) {
+      int tmp;
+      is >> tmp;
+      a.push_back(tmp);
+    }
+    return is;
+  }

@@ -1,4 +1,4 @@
-#include "DynamicArrays_2.hpp"
+#include "DynamicArrays_int.hpp"
 #include <cstddef>
 #include <iostream>
 
@@ -38,14 +38,14 @@ int main() {
   v5.qsort();
   cout << "Sorted: " << v5 << '\n';
 
-  DynamicArray<int> v1{};
+  DynamicArray v1{};
   v1.push_back(1);
   v1.push_back(2);
   v1.push_back(52);
   v1.push_back(64);
   cout << "V1: " << v1 << '\n';
 
-  DynamicArray<int> v2{};
+  DynamicArray v2{};
   v2.push_back(6);
   v2.push_back(8);
   v2.push_back(7);
@@ -55,10 +55,10 @@ int main() {
   v1 += v2;
   cout << "V1: " << v1 << '\n';
 
-  DynamicArray<int> v3 = v1 + v2;
+  DynamicArray v3 = v1 + v2;
   cout << "V3: " << v3 << '\n';
 
-  DynamicArray<int> v4{v3};
+  DynamicArray v4{v3};
 
   if(v4 == v3) cout << "True" << '\n';
   if(v4 != v2) cout << "False" << '\n';

@@ -1,35 +1,85 @@
-// Goals:
+// Interation 4 - Goals:
 /*
-1. Refactor Codebase,
-2. Use vector for better memory management
-3. Additionals
+1. Implementing the Greedy Algorithm <DONE>
+2. Implementing the timer for each result. <DONE>
+3. Implementing a new way for any Algo to solve the same matrix. <NEXT> -
+Duplicate the matrix and then delete.
+
+Additional changes:
+1. Removed current_solver_best_path/cost from City Solver, it's kind of
+redundant to have an additional value saved within the solver, this can be saved
+within the matrix.
+2. Due to the removal of the above mentioned, the permutation method is now
+encapsulated.
+3. Changed time formatting value to long long.
+4. Fixes to the permutation method to allow for an enclosed area.
+5. Better result printing.
+6. City indexing fixes for better output results.
 
 */
-// cities_refactor.cpp
-#include <algorithm>
-#include <chrono>
-#include <iostream>
-#include <limits>
-#include <random>
-#include <vector>
 
-using std::cin, std::cout, std::endl, std::vector,std::swap, std::mt19937, std::uniform_int_distribution, std::numeric_limits;
-using Clock = std::chrono::steady_clock;
-static constexpr int MAX_COST = 1000000;
+#include <cassert>
+#include <chrono>
+#include <cstddef>
+#include <cstring>
+#include <iostream>
+#include <ostream>
+#include <random>
+#include <stdlib.h>
+#include <time.h>
+using std::cin, std::cout, std::endl, std::chrono::steady_clock;
+#define MAX 1000
 
 struct Result {
-  vector<int> path;
-  int cost = MAX_COST;
-  long long time_ms = 0;
+  int *path; // allocated with new int[len]
+  int len;
+  int cost;
+  long long time_ms;
+  Result() : path(nullptr), len(0), cost(0), time_ms(0.0) {}
 
-  void printRes() const {
-    if (!path.empty()) {
+  // construct with path allocation
+  Result(int n)
+      : cost(0), path(new int[n]), len(n) {
+  }
+
+  // copy ctor (deep copy)
+  Result(const Result &o) {
+    cost = o.cost;
+    len = o.len;
+    if (o.path && len > 0) {
+      path = new int[len];
+      std::memcpy(path, o.path, sizeof(int) * len);
+    } else
+      path = nullptr;
+  }
+
+  // copy assignment
+  Result &operator=(const Result &o) {
+    if (this == &o)
+      return *this;
+    delete[] path;
+    cost = o.cost;
+    len = o.len;
+    if (o.path && len > 0) {
+      path = new int[len];
+      std::memcpy(path, o.path, sizeof(int) * len);
+    } else
+      path = nullptr;
+    return *this;
+  }
+
+  // destructor
+  ~Result() { delete[] path; }
+
+  void printRes() {
+    if (path != nullptr) {
       cout << "Solver best cost: " << cost << endl;
       cout << "Solver best path: ";
-      for (auto v : path)
-        cout << (v + 1) << " ";
+      for (int i = 0; i < len; i++)
+        cout << path[i] + 1 << " ";
       cout << endl;
       cout << "Solver time : " << time_ms << " ms" << endl;
+      delete[] path; // caller frees returned path
     } else {
       cout << "No result (n==0?)" << endl;
     }
@@ -37,320 +87,404 @@ struct Result {
 };
 
 class CityMatrix {
-public:
-  CityMatrix() = default;
-  explicit CityMatrix(int matrix_size);
-
-  // default copy/move/assign are fine (vectors manage memory)
-  void setSize(int matrix_size);
-  int getSize() const { return m_matrix_size; }
-
-  void generateMatrix(mt19937 &rng, int minVal = 1, int maxVal = 10);
-  void printMatrix() const;
-
-  // row/col operations
-  void swapRows(int pos_from, int pos_to);
-  void swapColumns(int pos_from, int pos_to);
-  void moveCityToFront(int idx);
-  void moveCityToBack(int idx);
-  void deleteCity(int cityIndex);
-
-  // helpers
-  int &at(int i, int j) { return m_distance_matrix[i][j]; }
-  int at(int i, int j) const { return m_distance_matrix[i][j]; }
-
-  void setBestPath(const vector<int> &path);
-  const vector<int> &getBestPath() const { return m_best_path; }
-  int getBestCost() const { return m_best_cost; }
-  void acceptBestIfBetter(const Result &res);
-
-  // small utility functions (kept short)
-  int getSmallestinRowIndex(int rowIndex) const;
-  int getSmallestinRowValue(int rowIndex) const;
-
 private:
-  int m_matrix_size = 0;
-  int m_best_cost = MAX_COST;
-  vector<int> m_best_path;
-  vector<vector<int>> m_distance_matrix;
-};
+  int m_matrix_size;
+  int m_best_cost{MAX};
+  int *m_best_path{nullptr};
+  int **m_distance_matrix{nullptr};
 
-// CitySolver declaration (implementations below)
-class CitySolver {
 public:
-  CitySolver() = default;
+  // Matrix Functions
+  void generateMatrix(int min_val, int max_val, bool symmetric = true, unsigned int seed = 0) {
+        assert(min_val <= max_val);
+        if (m_matrix_size <= 0) return;
+        if (seed == 0) seed = static_cast<unsigned int>(
+            std::chrono::high_resolution_clock::now().time_since_epoch().count());
+        std::mt19937_64 rng(seed);
+        std::uniform_int_distribution<int> dist(min_val, max_val);
 
-  // matrix creation: user should provide RNG (seed once in main)
-  void makeMatrix(int number_of_cities, mt19937 &rng);
-  void makeMatrix(mt19937 &rng); // random size like original (1..20)
-
-  void printMatrix() const;
-
-  // solver utilities (short declarations)
-  int calcCost(const vector<int> &path) const;
-
-  // brute force (permutation) & greedy
-  Result solveBruteForce(int startIndex);
-  Result solveGreedy(int startIndex);
-
-private:
-  // permutation helper (recursive) - defined outside
-  void permute(vector<int> &current_path, int l, int r,
-               vector<int> &best_path, int &best_cost);
-
-  CityMatrix matrix;
-};
-
-/* ---------------------------
-   CityMatrix method definitions
-   --------------------------- */
-
-CityMatrix::CityMatrix(int matrix_size) {
-  setSize(matrix_size);
-  // don't generate here; user should call generateMatrix with RNG for
-  // deterministic seeding
-}
-
-void CityMatrix::setSize(int matrix_size) {
-  m_matrix_size = matrix_size;
-  m_distance_matrix.assign(m_matrix_size, vector<int>(m_matrix_size, 0));
-  m_best_path.assign(m_matrix_size, -1);
-  m_best_cost = MAX_COST;
-}
-
-void CityMatrix::generateMatrix(mt19937 &rng, int minVal, int maxVal) {
-  if (m_matrix_size <= 0)
-    return;
-  uniform_int_distribution<int> dist(minVal, maxVal);
-  for (int i = 0; i < m_matrix_size; ++i) {
-    for (int j = 0; j < m_matrix_size; ++j) {
-      if (i == j)
-        m_distance_matrix[i][j] = 0;
-      else
-        m_distance_matrix[i][j] = dist(rng);
-    }
-  }
-}
-
-void CityMatrix::printMatrix() const {
-  cout << "Matrix is: " << endl;
-  for (int i = 0; i < m_matrix_size; ++i) {
-    for (int j = 0; j < m_matrix_size; ++j)
-      cout << m_distance_matrix[i][j] << " ";
-    cout << '\n';
-  }
-}
-
-void CityMatrix::swapRows(int pos_from, int pos_to) {
-  if (pos_from == pos_to)
-    return;
-  swap(m_distance_matrix[pos_from], m_distance_matrix[pos_to]);
-}
-
-void CityMatrix::swapColumns(int pos_from, int pos_to) {
-  if (pos_from == pos_to)
-    return;
-  for (int i = 0; i < m_matrix_size; ++i)
-    swap(m_distance_matrix[i][pos_from], m_distance_matrix[i][pos_to]);
-}
-
-void CityMatrix::moveCityToFront(int idx) {
-  if (idx <= 0 || idx >= m_matrix_size)
-    return;
-  swapRows(idx, 0);
-  swapColumns(idx, 0);
-}
-
-void CityMatrix::moveCityToBack(int idx) {
-  int last = m_matrix_size - 1;
-  if (idx < 0 || idx >= m_matrix_size || idx == last)
-    return;
-  swapRows(idx, last);
-  swapColumns(idx, last);
-}
-
-void CityMatrix::deleteCity(int cityIndex) {
-  // move city to last and remove last row/col
-  if (cityIndex < 0 || cityIndex >= m_matrix_size)
-    return;
-  moveCityToBack(cityIndex);
-  int last = m_matrix_size - 1;
-  m_distance_matrix.erase(m_distance_matrix.begin() + last);
-  for (auto &row : m_distance_matrix)
-    row.erase(row.begin() + last);
-  m_matrix_size--;
-  if (!m_best_path.empty()) {
-    m_best_path.erase(m_best_path.begin() + last);
-  }
-}
-
-void CityMatrix::setBestPath(const vector<int> &path) {
-  m_best_path = path;
-}
-
-void CityMatrix::acceptBestIfBetter(const Result &res) {
-  if ((int)res.path.size() != m_matrix_size)
-    return;
-  if (res.cost < m_best_cost) {
-    m_best_cost = res.cost;
-    m_best_path = res.path;
-  }
-}
-
-int CityMatrix::getSmallestinRowIndex(int rowIndex) const {
-  if (rowIndex < 0 || rowIndex >= m_matrix_size)
-    return -1;
-  int bestIdx = -1;
-  int bestVal = numeric_limits<int>::max();
-  for (int j = 0; j < m_matrix_size; ++j) {
-    if (m_distance_matrix[rowIndex][j] < bestVal) {
-      bestVal = m_distance_matrix[rowIndex][j];
-      bestIdx = j;
-    }
-  }
-  return bestIdx;
-}
-
-int CityMatrix::getSmallestinRowValue(int rowIndex) const {
-  if (rowIndex < 0 || rowIndex >= m_matrix_size)
-    return numeric_limits<int>::max();
-  int bestVal = numeric_limits<int>::max();
-  for (int j = 0; j < m_matrix_size; ++j) {
-    if (m_distance_matrix[rowIndex][j] < bestVal) {
-      bestVal = m_distance_matrix[rowIndex][j];
-    }
-  }
-  return bestVal;
-}
-
-/* ---------------------------
-   CitySolver method definitions
-   --------------------------- */
-
-void CitySolver::makeMatrix(int number_of_cities, mt19937 &rng) {
-  matrix.setSize(number_of_cities);
-  matrix.generateMatrix(rng);
-}
-
-void CitySolver::makeMatrix(mt19937 &rng) {
-  uniform_int_distribution<int> dist(1, 20);
-  int n = dist(rng);
-  matrix.setSize(n);
-  matrix.generateMatrix(rng);
-}
-
-void CitySolver::printMatrix() const { matrix.printMatrix(); }
-
-int CitySolver::calcCost(const vector<int> &path) const {
-  int n = (int)path.size();
-  if (n <= 0)
-    return 0;
-  int sum = 0;
-  for (int i = 0; i < n - 1; ++i)
-    sum += matrix.at(path[i], path[i + 1]);
-  sum += matrix.at(path[n - 1], path[0]);
-  return sum;
-}
-
-void CitySolver::permute(vector<int> &current_path, int l, int r,
-                         vector<int> &best_path, int &best_cost) {
-  if (l == r) {
-    int cost = calcCost(current_path);
-    if (cost < best_cost) {
-      best_cost = cost;
-      best_path = current_path;
-    }
-    return;
-  }
-  for (int i = l; i <= r; ++i) {
-    swap(current_path[l], current_path[i]);
-    permute(current_path, l + 1, r, best_path, best_cost);
-    swap(current_path[l], current_path[i]); //backtrack
-  }
-}
-
-Result CitySolver::solveBruteForce(int startIndex) {
-  auto tstart = Clock::now();
-  Result out;
-  int n = matrix.getSize();
-  if (n <= 0)
-    return out;
-
-  vector<int> cities(n);
-  for (int i = 0; i < n; ++i)
-    cities[i] = i;
-
-  // move chosen start to front (reorders matrix), and align cities[]
-  matrix.moveCityToFront(startIndex);
-  swap(cities[0], cities[startIndex]);
-
-  vector<int> brute_best_path;
-  int brute_best_cost = MAX_COST;
-
-  permute(cities, 1, n - 1, brute_best_path, brute_best_cost);
-
-  out.path = brute_best_path;
-  out.cost = brute_best_cost;
-  out.time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    Clock::now() - tstart)
-                    .count();
-  return out;
-}
-
-Result CitySolver::solveGreedy(int startIndex) {
-  auto tstart = Clock::now();
-  Result out;
-  int n = matrix.getSize();
-  if (n <= 0)
-    return out;
-
-  vector<int> greedy_path;
-  greedy_path.reserve(n);
-  vector<bool> visited(n, false);
-
-  int current = startIndex;
-  greedy_path.push_back(current);
-  visited[current] = true;
-  int greedy_cost = 0;
-
-  for (int step = 1; step < n; ++step) {
-    int best_next = -1;
-    int best_cost_here = numeric_limits<int>::max();
-    for (int j = 0; j < n; ++j) {
-      if (!visited[j]) {
-        int c = matrix.at(current, j);
-        if (c < best_cost_here) {
-          best_cost_here = c;
-          best_next = j;
+        for (int i = 0; i < m_matrix_size; ++i) {
+            for (int j = 0; j < m_matrix_size; ++j) {
+                if (i == j) {
+                    m_distance_matrix[i][j] = 0; // no self-loop cost
+                } else if (symmetric && j < i) {
+                    // copy from earlier
+                    m_distance_matrix[i][j] = m_distance_matrix[j][i];
+                } else {
+                    m_distance_matrix[i][j] = dist(rng);
+                }
+            }
         }
+    }
+
+  void printMatrix() {
+    cout << "Matrix is: " << endl;
+    for (int i = 0; i < m_matrix_size; i++) {
+      for (int j = 0; j < m_matrix_size; j++) {
+        cout << m_distance_matrix[i][j] << " ";
+      }
+      cout << endl;
+    }
+  }
+
+  void swapRows(int pos_from, int pos_to) {
+    // swap rows in matrix
+    for (int j = 0; j < m_matrix_size; j++) {
+      int tmp = at(pos_to, j);
+      at(pos_to, j) = at(pos_from, j);
+      at(pos_from, j) = tmp;
+    }
+  }
+
+  void swapColumns(int pos_from, int pos_to) {
+    // swap columns in matrix
+    for (int i = 0; i < m_matrix_size; i++) {
+      int tmp = at(i, pos_to);
+      at(i, pos_to) = at(i, pos_from);
+      at(i, pos_from) = tmp;
+    }
+  }
+  void moveCityToFront(int idx) {
+    swapRows(idx, 0);
+    swapColumns(idx, 0);
+  }
+
+  void moveCityToBack(int idx) {
+    swapRows(idx, m_matrix_size - 1);
+    swapColumns(idx, m_matrix_size - 1);
+  }
+
+  int getSmallestinRowIndex(
+      int rowIndex) { // this gives us the smallest value in the row, but what
+                      // we want is to get also the address.
+    int columnIndex{0};
+    int smallest{1000};
+    for (; columnIndex < m_matrix_size; columnIndex++) {
+      if (m_distance_matrix[rowIndex][columnIndex] <= smallest) {
+        smallest = m_distance_matrix[rowIndex][columnIndex];
       }
     }
-    if (best_next == -1)
-      break;
-    greedy_path.push_back(best_next);
-    visited[best_next] = true;
-    greedy_cost += best_cost_here;
-    current = best_next;
+    return columnIndex; // This gives us the index of the smallest in the row.
+    // But what if the city chosen city has already been went through?
+    // Then we need to remove that row and column from the 2D matrix.
   }
 
-  // add cost to return to start
-  greedy_cost += matrix.at(current, startIndex);
+  int getSmallestinRowValue(
+      int rowIndex) { // this gives us the smallest value in the row, but what
+                      // we want is to get also the address.
+    int columnIndex{0};
+    int smallest{1000};
+    for (; columnIndex < m_matrix_size; columnIndex++) {
+      if (m_distance_matrix[rowIndex][columnIndex] <= smallest) {
+        smallest = m_distance_matrix[rowIndex][columnIndex];
+      }
+    }
+    return smallest;
+  }
 
-  out.path = greedy_path;
-  out.cost = greedy_cost;
-  out.time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    Clock::now() - tstart)
-                    .count();
-  return out;
-}
+  void deleteCity(int cityIndex) {
+    // move the city's row and column to the last row and column. and then
+    // delete that from the indexes. matrix_size--.
+    moveCityToBack(cityIndex);
+    delete[] m_distance_matrix[m_matrix_size - 1];
+    m_matrix_size--;
+  }
 
-/* ---------------------------
-   main
-   --------------------------- */
+  // Setters & Getters
+  void setSize(int matrix_size) { m_matrix_size = matrix_size; }
+  int getSize() const { return m_matrix_size; }
+  void setBestCost(int best_cost) { m_best_cost = best_cost; }
+  int getBestCost() const { return m_best_cost; }
+  void setBestPath(int *path) {
+    for (int i = 0; i < m_matrix_size; i++) {
+      m_best_path[i] = path[i];
+    }
+  }
+  const int *getBestPath() const { return m_best_path; }
+  void printBestPath() {
+    cout << "Best path is:";
+    for (int i = 0; i < m_matrix_size; i++) {
+      cout << " " << m_best_path[i];
+    }
+    cout << endl;
+  }
+  inline int &at(int i, int j) { return m_distance_matrix[i][j]; }
+  inline int at(int i, int j) const { return m_distance_matrix[i][j]; }
+
+  void acceptBestIfBetter(const Result &res) {
+    if (res.len != m_matrix_size)
+      return; // sanity
+    if (res.cost < m_best_cost) {
+      m_best_cost = res.cost;
+      delete[] m_best_path;
+      m_best_path = new int[m_matrix_size];
+      for (int i = 0; i < m_matrix_size; i++)
+        m_best_path[i] = res.path[i];
+    }
+  }
+
+  // Constructors & Destructor
+  CityMatrix(int matrix_size) { // Constructor with size input
+    m_matrix_size = matrix_size;
+    m_distance_matrix = new int *[m_matrix_size];
+    for (int i = 0; i < m_matrix_size; ++i) {
+      m_distance_matrix[i] = new int[m_matrix_size];
+    }
+    m_best_path = new int[m_matrix_size];
+    for (int i = 0; i < m_matrix_size; i++)
+      m_best_path[i] = -1;
+    generateMatrix(1,100);
+  }
+
+  CityMatrix() { // Random Matrix Constructor
+    srand(time(NULL));
+    m_matrix_size =
+        rand() %
+        20; // For not setting the size of the matrix to not exceed 20 x 20
+    m_distance_matrix = new int *[m_matrix_size];
+    for (int i = 0; i < m_matrix_size; ++i) {
+      m_distance_matrix[i] = new int[m_matrix_size];
+    }
+    m_best_path = new int[m_matrix_size];
+    for (int i = 0; i < m_matrix_size; i++)
+      m_best_path[i] = -1;
+    generateMatrix(1,100);
+  }
+  // Copy Constructor
+  CityMatrix(const CityMatrix &other) {
+    m_matrix_size = other.m_matrix_size;
+    m_best_cost = other.m_best_cost;
+    m_distance_matrix = nullptr;
+    m_best_path = nullptr;
+    if (m_matrix_size > 0) {
+      m_distance_matrix = new int *[m_matrix_size];
+      for (int i = 0; i < m_matrix_size; i++) {
+        m_distance_matrix[i] = new int[m_matrix_size];
+        for (int j = 0; j < m_matrix_size; j++) {
+          m_distance_matrix[i][j] = other.m_distance_matrix[i][j];
+        }
+      }
+      if (other.m_best_path) {
+        m_best_path = new int[m_matrix_size];
+        for (int i = 0; i < m_matrix_size; i++)
+          m_best_path[i] = other.m_best_path[i];
+      }
+    }
+  }
+
+  CityMatrix &operator=(const CityMatrix &other) {
+    if (this == &other)
+      return *this;
+    delete[] m_best_path;
+    for (int i = 0; i < m_matrix_size; i++) {
+      delete[] m_distance_matrix[i];
+    }
+    delete[] m_distance_matrix;
+    m_matrix_size = other.m_matrix_size;
+    m_best_cost = other.m_best_cost;
+    m_distance_matrix = nullptr;
+    m_best_path = nullptr;
+    if (m_matrix_size > 0) {
+      m_distance_matrix = new int *[m_matrix_size];
+      for (int i = 0; i < m_matrix_size; i++) {
+        m_distance_matrix[i] = new int[m_matrix_size];
+        for (int j = 0; j < m_matrix_size; j++) {
+          m_distance_matrix[i][j] = other.m_distance_matrix[i][j];
+        }
+      }
+      if (other.m_best_path) {
+        m_best_path = new int[m_matrix_size];
+        for (int i = 0; i < m_matrix_size; i++)
+          m_best_path[i] = other.m_best_path[i];
+      }
+    }
+    return *this;
+  }
+
+  ~CityMatrix() {
+    for (int i = 0; i < m_matrix_size; ++i)
+      delete[] m_distance_matrix[i];
+    delete[] m_distance_matrix;
+    delete[] m_best_path;
+  }
+};
+
+class CitySolver {
+  CityMatrix *matrix = nullptr;
+
+public:
+  void printMatrix() { matrix->printMatrix(); }
+
+  void makeMatrix(int number_of_cities) {
+    matrix = new CityMatrix(number_of_cities);
+  }
+  void makeMatrix() { matrix = new CityMatrix(); }
+
+  // Random Operations Methods:
+  void swapInts(int *x, int *y) {
+    int tmp = *x;
+    *x = *y;
+    *y = tmp;
+  }
+
+  void printPath(int *path, int len) {
+    for (int i = 0; i < len; i++) {
+      cout << path[i] << " ";
+    }
+  }
+
+  void swapCityArray(int *cities, int pos1, int pos2) {
+    int temp = cities[pos1]; // Dereference the pointer to get the value
+    cities[pos1] = cities[pos2];
+    cities[pos2] = temp;
+  }
+
+  // Methods used by Solvers
+  int calcCost(int *path, int len) {
+    int sum = 0;
+    for (int i = 0; i < len - 1; i++)
+      sum += matrix->at(path[i], path[i + 1]);
+    sum += matrix->at(path[len - 1], path[0]);
+    return sum;
+  }
+
+  void permute(int *current_path, int l, int r, int *solver_path,
+               int *solver_cost) {
+    if (l == r) {
+      int cost = calcCost(current_path, r + 1);
+      if (cost < *solver_cost) {
+        *solver_cost = cost; // <-- Correct: update the VALUE, not the pointer
+        // copy current_path into solver best buffer
+        for (int i = 0; i < matrix->getSize(); i++)
+          solver_path[i] = current_path[i];
+      }
+    } else {
+      for (int i = l; i <= r; i++) {
+        swapInts(&current_path[l], &current_path[i]);
+        permute(current_path, l + 1, r, solver_path, solver_cost);
+        swapInts(&current_path[l], &current_path[i]); // backtrack
+      }
+    }
+  }
+
+  // Small note: to create a copy of the beginning matrix in the solver methods
+  // so that they can freely manipulate it instead touching the original matrix.
+
+  // Solver Methods:
+
+  Result solveBruteForce(int startIndex) {
+    auto start = steady_clock::now();
+    Result out;
+    int n = matrix->getSize();
+    if (n <= 0)
+      return out;
+
+    // prepare city array
+    int *cities = new int[n];
+    for (int i = 0; i < n; i++)
+      cities[i] = i;
+
+    // init brute best path and cost
+    int *brute_best_path = new int[n];
+    int brute_best_cost = MAX;
+
+    // move chosen start to front (reorders matrix), and align cities[]
+    matrix->moveCityToFront(startIndex);
+    swapCityArray(cities, 0, startIndex);
+
+    // search all permutations with city 0 fixed
+    permute(cities, 1, n - 1, brute_best_path, &brute_best_cost);
+
+    // build Result to return; allocate fresh path for caller to own
+    out.len = n;
+    out.cost = brute_best_cost;
+    out.path = new int[n];
+    for (int i = 0; i < n; i++)
+      out.path[i] = brute_best_path[i];
+
+    // Time Tracking
+    auto end = steady_clock::now();
+    auto duration = end - start;
+    out.time_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+
+    delete[] cities;
+
+    return out;
+  }
+
+  Result solveGreedy(int startIndex) {
+    auto start = steady_clock::now();
+    int n = matrix->getSize();
+    Result out; // Assuming Result has members for path and cost
+
+    if (n <= 0) {
+      return out;
+    }
+
+    // Greedy values init
+    int *greedy_path = new int[n];
+    bool *visited_cities = new bool[n];
+    for (int i = 0; i < n; i++) {
+      visited_cities[i] = false;
+    }
+    int greedy_cost = 0;
+    int current_city = startIndex;
+
+    // Start with the initial city
+    greedy_path[0] = current_city;
+    visited_cities[current_city] = true;
+
+    // Loop until all cities have been visited
+    for (int i = 0; i < n - 1; ++i) {
+      int smallest_cost = 10000;
+      int next_city = -1;
+
+      // Find the next unvisited city with the smallest cost
+      for (int j = 0; j < n; ++j) {
+        // Check if city 'j' is unvisited and has a smaller cost
+        if (!visited_cities[j] && matrix->at(current_city, j) < smallest_cost) {
+          smallest_cost = matrix->at(current_city, j);
+          next_city = j;
+        }
+      }
+
+      // Add the next city to the path
+      if (next_city != -1) {
+        greedy_path[i + 1] = next_city;
+        visited_cities[next_city] = true;
+        greedy_cost += smallest_cost;
+        current_city = next_city;
+      } else {
+        break; // if matrix is invalid
+      }
+    }
+
+    // Add cost to return to starting city to complete the cycle
+    greedy_cost += matrix->at(current_city, startIndex);
+
+    // Build the Result object to return
+    out.len = n;
+    out.cost = greedy_cost;
+    out.path = new int[n];
+    for (int i = 0; i < n; i++)
+      out.path[i] = greedy_path[i];
+
+    // Time Tracking
+    auto end = steady_clock::now();
+    auto duration = end - start;
+    out.time_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+
+    delete[] visited_cities;
+    delete[] greedy_path;
+
+    return out;
+  }
+};
 
 int main() {
-  std::random_device rd;
-  mt19937 rng(rd());
+  srand((unsigned)time(NULL)); // seed once here
 
   int number_of_cities{};
   cout << "Input number of cities: ";
@@ -361,33 +495,34 @@ int main() {
     cout << "Error: number of cities must be > 0" << endl;
     return 1;
   }
-  if (number_of_cities > 1000) {
+  if (number_of_cities > 1000) { // guard against too large
     cout << "Error: number of cities too large (max 1000)" << endl;
     return 1;
   }
 
-  CitySolver solver;
-  solver.makeMatrix(number_of_cities, rng);
-  solver.printMatrix();
+  CitySolver Cities1;
+
+  Cities1.makeMatrix(number_of_cities);
+
+  Cities1.printMatrix();
 
   int startIndex;
   cout << "Input starting city: ";
   cin >> startIndex;
   cout << endl;
-  if (startIndex < 1 || startIndex > number_of_cities) {
+  if (startIndex < 1 || startIndex >= number_of_cities) {
     cout << "Error: start index must be in [1," << number_of_cities << "]"
          << endl;
     return 1;
   }
   startIndex -= 1;
-
   cout << "Greedy Results: " << endl;
-  Result res1 = solver.solveGreedy(startIndex);
+  Result res1 = Cities1.solveGreedy(startIndex);
   res1.printRes();
 
   cout << "============" << endl;
   cout << "Brute Force Results: " << endl;
-  Result res2 = solver.solveBruteForce(startIndex);
+  Result res2 = Cities1.solveBruteForce(startIndex);
   res2.printRes();
 
   return 0;

@@ -388,34 +388,6 @@ public:
          << "Capacity: " << m_capacity << '\n';
   };
 
-  // streaming: output and input (simple) // for example cout << a;
-  friend std::ostream &operator<<(std::ostream &os, const DynamicArray &a) {
-    os << "[";
-    for (size_type i = 0; i < a.m_size; ++i) {
-      if (i)
-        os << ", ";
-      os << a.m_arr[i];
-    }
-    os << "]";
-    return os;
-  }
-
-  // simple input: read n then n elements
-  friend std::istream &operator>>(std::istream &is, DynamicArray &a) {
-    size_type n;
-    if (!(is >> n))
-      return is;
-    a.clear();
-    if (a.m_capacity < n)
-      a.reserve(n);
-    for (size_type i = 0; i < n; ++i) {
-      T tmp;
-      is >> tmp;
-      a.push_back(tmp);
-    }
-    return is;
-  }
-
   // Quick Sort implementation.
   int partition(T arr[], size_type low, size_type high) {
     using std::swap;
@@ -462,3 +434,33 @@ private:
   size_type m_capacity;
   size_type m_size;
 };
+
+// Mark out:
+
+  // streaming: output and input (simple) // for example cout << a;
+  std::ostream &operator<<(std::ostream &os, const DynamicArray &a) {
+    os << "[";
+    for (size_t i = 0; i < a.m_size; ++i) {
+      if (i)
+        os << ", ";
+      os << a.m_arr[i];
+    }
+    os << "]";
+    return os;
+  }
+
+  // simple input: read n then n elements
+  std::istream &operator>>(std::istream &is, DynamicArray &a) {
+    size_t n;
+    if (!(is >> n))
+      return is;
+    a.clear();
+    if (a.m_capacity < n)
+      a.reserve(n);
+    for (size_t i = 0; i < n; ++i) {
+      T tmp;
+      is >> tmp;
+      a.push_back(tmp);
+    }
+    return is;
+  }
