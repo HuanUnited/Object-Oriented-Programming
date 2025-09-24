@@ -43,6 +43,10 @@ concatenation, and ==/!= are implemented.
 Memory management: reserve and shrink_to_fit implemented; doubling strategy for
 growth to maintain amortized push time.
 
+Bug fixes:
+Move copy constructor turns capacity into 0 - wrong
+Move copy constructor turns array pointer to null array - wrong.
+
 */
 #pragma once
 
@@ -62,11 +66,12 @@ public:
   using size_type = std::size_t; // Better than unsigned int
 
   // --- constructors / destructor ---
-  DynamicArray()
-      : m_arr(new T[1]), m_capacity(1), m_size(0) {} // Default Constructor
 
+  // Default Constructor
+  DynamicArray() : m_arr(new T[1]), m_capacity(1), m_size(0) {}
+  // Array Constructor
   DynamicArray(const T *arr, size_type count)
-      : m_arr(nullptr), m_capacity(0), m_size(0) { // Array Constructor
+      : m_arr(nullptr), m_capacity(0), m_size(0) {
     if (count == 0) {
       m_arr = new T[1];
       m_capacity = 1;
@@ -79,17 +84,18 @@ public:
     for (size_type i = 0; i < count; ++i)
       m_arr[i] = arr[i];
   }
+  // Copy Constructor
   DynamicArray(const DynamicArray &other)
       : m_arr(new T[other.m_capacity]), m_capacity(other.m_capacity),
-        m_size(other.m_size) { // Copy Constructor
+        m_size(other.m_size) {
     for (size_type i = 0; i < m_size; ++i)
       m_arr[i] = other.m_arr[i];
   }
+  // Move Constructor
   DynamicArray(DynamicArray &&other) noexcept
-      : m_arr(other.m_arr), m_capacity(other.m_capacity),
-        m_size(other.m_size) { // Move Constructor
-    other.m_arr = nullptr;
-    other.m_capacity = 0;
+      : m_arr(other.m_arr), m_capacity(other.m_capacity), m_size(other.m_size) {
+    other.m_arr = new T[1];
+    other.m_capacity = 1;
     other.m_size = 0;
   }
   ~DynamicArray() { delete[] m_arr; }
@@ -361,19 +367,19 @@ public:
 
   void setconsole() {
     cout << "Input number of elements: ";
-    int capacity;
+    size_type capacity;
     cin >> capacity;
+    T temp{};
     cout << '\n' << "Input values: ";
-    for (int i = 0; i < capacity; i++) {
-      T value{};
-      cin >> value;
-      push(value);
+    for (size_type i = 0; i < capacity; i++) {
+      cin >> temp;
+      push_back(temp);
     }
   };
 
   void getconsole() {
     cout << "Elements:";
-    for (int i = 0; i <= m_size; i++) {
+    for (size_type i = 0; i < m_size; i++) {
       cout << " " << m_arr[i];
     }
     cout << '\n'
@@ -410,12 +416,12 @@ public:
   }
 
   // Quick Sort implementation.
-  int partition(int arr[], int low, int high) {
+  int partition(T arr[], size_type low, size_type high) {
     using std::swap;
     // Initialize pivot to be the first element
-    int p = arr[low];
-    int i = low;
-    int j = high;
+    T p = arr[low];
+    size_type i = low;
+    size_type j = high;
 
     while (i < j) {
 
@@ -438,7 +444,7 @@ public:
     return j;
   }
 
-  void quickSort(int arr[], int low, int high) {
+  void quickSort(T arr[], size_type low, size_type high) {
     if (low < high) {
       // call partition function to find Partition Index
       int pi = partition(arr, low, high);
