@@ -438,7 +438,8 @@ private:
 // Mark out:
 
   // streaming: output and input (simple) // for example cout << a;
-  std::ostream &operator<<(std::ostream &os, const DynamicArray &a) {
+  template <typename T>
+  std::ostream &operator<<(std::ostream &os, const DynamicArray<T> &a) {
     os << "[";
     for (size_t i = 0; i < a.m_size; ++i) {
       if (i)
@@ -450,7 +451,8 @@ private:
   }
 
   // simple input: read n then n elements
-  std::istream &operator>>(std::istream &is, DynamicArray &a) {
+    template <typename T>
+  std::istream &operator>>(std::istream &is, DynamicArray<T> &a) {
     size_t n;
     if (!(is >> n))
       return is;

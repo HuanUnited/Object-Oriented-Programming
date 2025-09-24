@@ -2,6 +2,11 @@
 // 1. Generate Matrix Struct
 // 2. Solver Functions
 // 3. Result Struct.
+// 4. The function can run multiple times so that it can start from multiple cities
+// 5. Best and worst solution.
+// 6. Djikstra's Algorithm for Bruteforce
+// 7. Implement Greedy Algorithm
+// 8. Implement third heuristic.
 
 #include <cassert>
 #include<iostream>

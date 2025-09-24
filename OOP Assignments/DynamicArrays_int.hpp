@@ -11,6 +11,7 @@ Dynamic Arrays int
 #include <iostream>
 #include <stdexcept>
 #include <utility>
+#include <initializer_list>
 using std::cin, std::cout, std::endl;
 
 class DynamicArray {
@@ -52,6 +53,22 @@ public:
     other.m_capacity = 1;
     other.m_size = 0;
   }
+
+  // --- Initializer list constructor ---
+  DynamicArray(std::initializer_list<int> ilist)
+      : m_arr(nullptr), m_capacity(ilist.size()), m_size(ilist.size()) {
+    if (m_capacity == 0) {
+      m_arr = new int[1];
+      m_capacity = 1;
+      m_size = 0;
+    } else {
+      m_arr = new int[m_capacity];
+      size_type i = 0;
+      for (auto val : ilist)
+        m_arr[i++] = val;
+    }
+  }
+
   ~DynamicArray() { delete[] m_arr; }
 
   // --- capacity/info ---
@@ -211,11 +228,18 @@ public:
   }
 
   // swap contents (member version)
+
   void swap(DynamicArray &other) noexcept {
-    using std::swap;
-    swap(m_arr, other.m_arr);
-    swap(m_size, other.m_size);
-    swap(m_capacity, other.m_capacity);
+    int *temp_arr = m_arr;
+    size_type temp_size = m_size;
+    size_type temp_cap = m_capacity;
+
+    m_arr = other.m_arr;
+    other.m_arr = temp_arr;
+    m_size = other.m_size;
+    other.m_size = temp_size;
+    m_capacity = other.m_capacity;
+    other.m_capacity = temp_cap;
   }
 
   // sorting
@@ -228,7 +252,7 @@ public:
   void qsort() {
     if (m_size <= 1)
       return;
-    quickSort(m_arr,0,m_size);
+    quickSort(m_arr, 0, m_size);
   }
 
   // min / max — throw if empty
@@ -264,7 +288,6 @@ public:
     m_size = other.m_size;
     return *this;
   }
-
 
   DynamicArray &operator=(DynamicArray &&other) noexcept {
     if (this != &other) {
@@ -335,7 +358,8 @@ public:
   void getconsole() {
     cout << "[";
     for (size_type i = 0; i < m_size; i++) {
-      if (i) cout << ", ";
+      if (i)
+        cout << ", ";
       cout << m_arr[i];
     }
     cout << "]" << '\n';
@@ -384,34 +408,34 @@ public:
 
 private:
   int *m_arr;
-  size_type m_capacity; //std::size_t
+  size_type m_capacity; // std::size_t
   size_type m_size;
 };
 
-  // streaming: output and input (simple) // for example cout << a;
-  inline std::ostream& operator<<(std::ostream &os, const DynamicArray &a) {
-    os << "[";
-    for (size_t i = 0; i < a.size(); ++i) {
-      if (i)
-        os << ", ";
-      os << a.at(i);
-    }
-    os << "]";
-    return os;
+// streaming: output and input (simple) // for example cout << a;
+inline std::ostream &operator<<(std::ostream &os, const DynamicArray &a) {
+  os << "[";
+  for (size_t i = 0; i < a.size(); ++i) {
+    if (i)
+      os << ", ";
+    os << a.at(i);
   }
+  os << "]";
+  return os;
+}
 
-  // simple input: read n then n elements
-  std::istream& operator>>(std::istream &is, DynamicArray &a) {
-    size_t n;
-    if (!(is >> n))
-      return is;
-    a.clear();
-    if (a.capacity() < n)
-      a.reserve(n);
-    for (size_t i = 0; i < n; ++i) {
-      int tmp;
-      is >> tmp;
-      a.push_back(tmp);
-    }
+// simple input: read n then n elements
+std::istream &operator>>(std::istream &is, DynamicArray &a) {
+  size_t n;
+  if (!(is >> n))
     return is;
+  a.clear();
+  if (a.capacity() < n)
+    a.reserve(n);
+  for (size_t i = 0; i < n; ++i) {
+    int tmp;
+    is >> tmp;
+    a.push_back(tmp);
   }
+  return is;
+}

@@ -1,66 +1,121 @@
 #include "DynamicArrays_int.hpp"
-#include <cstddef>
 #include <iostream>
+using std::cout;
+using std::endl;
+
+void printArray(const DynamicArray& arr, const std::string& name) {
+    cout << name << " = " << arr << ", size = " << arr.size() << endl;
+}
 
 int main() {
+    cout << "=== DynamicArray Tests ===" << endl;
 
-  // DynamicArray v1{};
-  // v1.push_back(1);
-  // v1.push_back(2);
-  // v1.push_back(52);
-  // v1.push_back(64);
-  // cout << "V1: " << v1 << '\n';
+    // --- Constructors ---
+    cout << "\n-- Constructors --" << endl;
+    DynamicArray a;
+    printArray(a, "a (default)");
 
-  // int a[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int raw[] = {1, 2, 3};
+    DynamicArray b(raw, 3);
+    printArray(b, "b (from raw array)");
 
-  // DynamicArray v2{a, 10};
-  // cout << "V2: " << v2 << '\n';
+    DynamicArray c(b);
+    printArray(c, "c (copy of b)");
 
-  // DynamicArray v3{v2}; // copy constructor
-  // cout << "V3: " << v3 << '\n';
+    DynamicArray d(std::move(c));
+    printArray(d, "d (moved from c)");
+    printArray(c, "c (after move)");
 
-  // DynamicArray v4{std::move(v3)}; // move constructor.
-  // cout << "V4: " << v4 << '\n';
-  // cout << "V3: " << v3 << '\n';
+    // --- Push back / operator+= ---
+    cout << "\n-- Push Back / += --" << endl;
+    printArray(a, "a before push_back(5)");
+    a.push_back(5);
+    printArray(a, "a after push_back(5)");
 
-  // cout << "Console IO " << '\n';
-  // v3.setconsole();
-  // v3.getconsole();
+    printArray(a, "a before += 10");
+    a += 10;
+    printArray(a, "a after += 10");
 
-  int b[] = {3,   53, 76,  76, 4,   4, 56, 545, 45, 24, 2342,
-             423, 65, 546, 7,  658, 8, 5,  45,  2,  4};
+    printArray(a, "a before creating e = a + 20");
+    DynamicArray e = a + 20;
+    printArray(e, "e after a + 20");
 
-  size_t sizeofArray = sizeof(b) / sizeof(b[0]);
+    // --- Insert / Erase ---
+    cout << "\n-- Insert / Erase --" << endl;
+    printArray(b, "b before insert_at(1,5)");
+    b.insert_at(1, 5);
+    printArray(b, "b after insert_at(1,5)");
 
-  DynamicArray v5(b, sizeofArray);
-  cout << "V5: " << v5 << '\n';
+    printArray(b, "b before erase_at(1)");
+    b.erase_at(1);
+    printArray(b, "b after erase_at(1)");
 
-  v5.qsort();
-  cout << "Sorted: " << v5 << '\n';
+    printArray(b, "b before erase(begin())");
+    auto it = b.begin();
+    b.erase(it);
+    printArray(b, "b after erase(begin())");
 
-  DynamicArray v1{};
-  v1.push_back(1);
-  v1.push_back(2);
-  v1.push_back(52);
-  v1.push_back(64);
-  cout << "V1: " << v1 << '\n';
+    // --- Erase range ---
+    cout << "\n-- Erase Range --" << endl;
+    DynamicArray f{1,2,3,4,5};
+    printArray(f, "f initial");
+    printArray(f, "f before erase range [1,4)");
+    f.erase(f.begin()+1, f.begin()+4);
+    printArray(f, "f after erase range [1,4)");
 
-  DynamicArray v2{};
-  v2.push_back(6);
-  v2.push_back(8);
-  v2.push_back(7);
-  v2.push_back(12);
-  cout << "V2: " << v2 << '\n';
+    // --- Pop first / all ---
+    cout << "\n-- Pop First / All --" << endl;
+    DynamicArray g{1,2,1,3};
+    printArray(g, "g initial");
 
-  v1 += v2;
-  cout << "V1: " << v1 << '\n';
+    printArray(g, "g before pop_first(1)");
+    g.pop_first(1);
+    printArray(g, "g after pop_first(1)");
 
-  DynamicArray v3 = v1 + v2;
-  cout << "V3: " << v3 << '\n';
+    printArray(g, "g before pop_all(1)");
+    g.pop_all(1);
+    printArray(g, "g after pop_all(1)");
 
-  DynamicArray v4{v3};
+    // --- Find, min, max ---
+    cout << "\n-- Find / Min / Max --" << endl;
+    DynamicArray h{4,2,7,1};
+    printArray(h, "h");
+    cout << "h.find(7) = " << h.find(7) << endl;
+    cout << "h.find(42) = " << h.find(42) << endl;
+    cout << "h.min() = " << h.min() << ", h.max() = " << h.max() << endl;
 
-  if(v4 == v3) cout << "True" << '\n';
-  if(v4 != v2) cout << "False" << '\n';
+    // --- Swap ---
+    cout << "\n-- Swap --" << endl;
+    DynamicArray i{1,2};
+    DynamicArray j{10,20};
+    printArray(i, "i before swap");
+    printArray(j, "j before swap");
+    i.swap(j);
+    printArray(i, "i after swap");
+    printArray(j, "j after swap");
 
+    // --- Sorting ---
+    cout << "\n-- Sorting --" << endl;
+    DynamicArray k{3,1,4,2};
+    printArray(k, "k before sort");
+    k.sort();
+    printArray(k, "k after sort");
+
+    // --- Insert before iterator ---
+    cout << "\n-- Insert Before Iterator --" << endl;
+    DynamicArray l{1,3};
+    printArray(l, "l before insert before iterator");
+    auto lit = l.begin() + 1;
+    l.insert(lit, 2);
+    printArray(l, "l after insert before iterator");
+
+    // --- Stream I/O ---
+    cout << "\n-- Stream I/O --" << endl;
+    DynamicArray m;
+    printArray(m, "m before stream input");
+    cin >> m;
+    printArray(m, "m after stream input");
+
+    cout << "\n=== All tests done ===" << endl;
+    return 0;
 }
