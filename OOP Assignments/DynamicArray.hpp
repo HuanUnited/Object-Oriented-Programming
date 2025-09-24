@@ -109,9 +109,9 @@ public:
 
 // Constructor
 template <typename T> DynamicArray<T>::DynamicArray() {
-  m_arr = new T[1];
-  m_capacity = 1;
-  m_size = 0;
+    m_arr = new T[1];
+    m_capacity = 1;
+    m_size = 0;
 }
 
 // Constructor with array
@@ -119,7 +119,7 @@ template <typename T> DynamicArray<T>::DynamicArray(T *arr, T size) {
   m_arr = new T[size];
   for (int i = 0; i < size; i++) {
     m_arr[i] = arr[i];
-  }
+}
   m_capacity = size;
   m_size = size;
 }
@@ -131,7 +131,7 @@ DynamicArray<T>::DynamicArray(const DynamicArray &other)
   m_arr = new T[m_size];
   for (int i = 0; i < m_size; i++) {
     m_arr[i] = other.m_arr[i];
-  }
+}
 }
 
 // Move constructor
@@ -141,10 +141,10 @@ DynamicArray<T>::DynamicArray(DynamicArray&& other) noexcept
           m_capacity(other.m_capacity),
           m_size(other.m_size) {
         // Leave 'other' in a valid but empty state
-        other.m_arr = nullptr;
-        other.m_capacity = 0;
-        other.m_size = 0;
-    }
+  other.m_arr = nullptr;
+  other.m_capacity = 0;
+  other.m_size = 0;
+}
 
 
 // Destructor
@@ -303,74 +303,74 @@ void DynamicArray<T>::popit(T *const iterator1, T *const iterator2) {
 // Operators:
 template <typename T>
 T& DynamicArray<T>::operator[](int index) {
-    // optional: add bounds check here
-    return m_arr[index];
+  // optional: add bounds check here
+  return m_arr[index];
 }
 
 template <typename T>
 DynamicArray<T>& DynamicArray<T>::operator=(const DynamicArray<T>& other) {
     if (this == &other) return *this; // self-assignment check
 
-    delete[] m_arr; // free old memory
+  delete[] m_arr; // free old memory
 
-    m_capacity = other.m_capacity;
-    m_size = other.m_size;
-    m_arr = new T[m_capacity];
-    for (int i = 0; i < m_size; ++i) {
-        m_arr[i] = other.m_arr[i];
-    }
-    return *this;
+  m_capacity = other.m_capacity;
+  m_size = other.m_size;
+  m_arr = new T[m_capacity];
+  for (int i = 0; i < m_size; ++i) {
+    m_arr[i] = other.m_arr[i];
+  }
+  return *this;
 }
 
 template <typename T>
 DynamicArray<T>& DynamicArray<T>::operator+=(const T& value) {
-    push(value);
-    return *this;
+  push(value);
+  return *this;
 }
 
 template <typename T>
 DynamicArray<T> DynamicArray<T>::operator+(const T& value) const {
-    DynamicArray<T> result(*this);
-    result += value;
-    return result;
+  DynamicArray<T> result(*this);
+  result += value;
+  return result;
 }
 
 
 template <typename T>
 DynamicArray<T>& DynamicArray<T>::operator=(DynamicArray<T>&& other) noexcept {
-    if (this != &other) {
-        delete[] m_arr;
+  if (this != &other) {
+    delete[] m_arr;
 
-        m_arr = other.m_arr;
-        m_size = other.m_size;
-        m_capacity = other.m_capacity;
+    m_arr = other.m_arr;
+    m_size = other.m_size;
+    m_capacity = other.m_capacity;
 
-        other.m_arr = nullptr;
-        other.m_size = 0;
-        other.m_capacity = 0;
-    }
-    return *this;
+    other.m_arr = nullptr;
+    other.m_size = 0;
+    other.m_capacity = 0;
+  }
+  return *this;
 }
 
 template <typename T>
 DynamicArray<T>& DynamicArray<T>::operator+=(const DynamicArray<T>& other) {
-    for (int i = 0; i < other.m_size; ++i) {
-        *this += other.m_arr[i]; // reuse single-element +=
-    }
-    return *this;
+  for (int i = 0; i < other.m_size; ++i) {
+    *this += other.m_arr[i]; // reuse single-element +=
+  }
+  return *this;
 }
 
 template <typename T>
 bool DynamicArray<T>::operator==(const DynamicArray<T>& other) const {
     if (m_size != other.m_size) return false;
-    for (int i = 0; i < m_size; ++i) {
+  for (int i = 0; i < m_size; ++i) {
         if (m_arr[i] != other.m_arr[i]) return false;
-    }
-    return true;
+  }
+  return true;
 }
 
 template <typename T>
 bool DynamicArray<T>::operator!=(const DynamicArray<T>& other) const {
-    return !(*this == other);
+  return !(*this == other);
 }
 
