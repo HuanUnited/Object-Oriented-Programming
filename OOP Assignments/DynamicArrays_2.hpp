@@ -441,10 +441,10 @@ private:
   template <typename T>
   std::ostream &operator<<(std::ostream &os, const DynamicArray<T> &a) {
     os << "[";
-    for (size_t i = 0; i < a.m_size; ++i) {
+    for (size_t i = 0; i < a.size(); ++i) {
       if (i)
         os << ", ";
-      os << a.m_arr[i];
+      os << a.at(i);
     }
     os << "]";
     return os;
@@ -457,7 +457,7 @@ private:
     if (!(is >> n))
       return is;
     a.clear();
-    if (a.m_capacity < n)
+    if (a.capacity() < n)
       a.reserve(n);
     for (size_t i = 0; i < n; ++i) {
       T tmp;
