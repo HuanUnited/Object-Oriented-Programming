@@ -13,7 +13,7 @@
 // For example: #include "DynamicArray.hpp" or #include "DynamicArrays_int.hpp"
 #include "DynamicArrays_2.hpp"
 
-using std::cout; using std::endl;
+using std::cout;
 
 int tests_passed = 0;
 int tests_failed = 0;
@@ -105,7 +105,7 @@ void test_stream_io() {
     DynamicArray<int> b;
     // Only attempt extraction if operator>> is available with this syntax
     bool extraction_ok = true;
-    try { is >> b; }
+    try { cin >> b; }
     catch(...) { extraction_ok = false; }
     // If operator>> is implemented, b.size() should be > 0 ; otherwise extraction_ok==false
     if (extraction_ok) {
@@ -130,7 +130,7 @@ void test_sort() {
 void test_insert_remove_by_index() {
     cout << "\n== insert/remove by index ==\n";
     DynamicArray<int> a;
-    bool ok1 = a.insert(0, 5); // insert at 0
+    bool ok1 = a.insert_at(0, 5); // insert at 0
     CHECK(ok1 && a.size() == 1 && a[0] == 5, "insert at 0 on empty array works");
 
     // Insert out of bounds should return false
