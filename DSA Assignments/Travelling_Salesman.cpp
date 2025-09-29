@@ -21,9 +21,10 @@
 #include <random>
 
 using ll = long long;
+using size_type = size_t;
 static constexpr ll INF = (ll)9e15;
 
-// ---------- Matrix (C-style) ----------
+// ---------- Matrix ----------
 struct Matrix {
     ll **m_matrix = nullptr;
     size_t m_size{};
@@ -96,7 +97,7 @@ struct Matrix {
     }
 };
 
-// ---------- Result (owns C array path) ----------
+// ---------- Result ----------
 struct Result {
     int *path = nullptr;
     size_t path_len = 0;
@@ -155,13 +156,11 @@ struct Result {
 // swap ints
 static inline void swap_int(int &a, int &b) { int t = a; a = b; b = t; }
 
-// lexicographic next_permutation for an int array [first..first+len)
-// returns true if next permutation exists; arr is modified in-place.
-// Implementation mirrors std::next_permutation.
-bool next_permutation_array(int *arr, size_t len) {
+// next permutation array
+bool next_permutation_array(int *arr, size_type len) {
     if (len < 2) return false;
     // find longest non-increasing suffix
-    ssize_t i = (ssize_t)len - 2;
+    size_type i = len - 2;
     while (i >= 0 && arr[i] >= arr[i+1]) --i;
     if (i < 0) {
         // last permutation; reorder to first (sorted ascending) and return false
@@ -171,7 +170,7 @@ bool next_permutation_array(int *arr, size_t len) {
         return false;
     }
     // find rightmost element greater than arr[i]
-    ssize_t j = (ssize_t)len - 1;
+    size_type j = (size_type)len - 1;
     while (arr[j] <= arr[i]) --j;
     swap_int(arr[i], arr[j]);
     // reverse suffix arr[i+1 .. end]
@@ -201,52 +200,10 @@ ll computeTourCostArray(const int *path, size_t n, const Matrix &mat, ll **alt =
     return sum;
 }
 
-// ---------- Dijkstra and APSP (matrix-based O(n^2) Dijkstra) ----------
-
-// returns heap-allocated ll[n] distances; caller must delete[]
-ll* dijkstra_as_array(const Matrix &mat, int src) {
-    size_t n = mat.size();
-    if (n == 0) return nullptr;
-    ll *dist = new ll[n];
-    bool *used = new bool[n];
-    for (size_t i = 0; i < n; ++i) { dist[i] = INF; used[i] = false; }
-    dist[src] = 0;
-    for (size_t it = 0; it < n; ++it) {
-        int v = -1;
-        for (size_t i = 0; i < n; ++i) {
-            if (!used[i] && (v == -1 || dist[i] < dist[v])) v = (int)i;
-        }
-        if (v == -1 || dist[v] == INF) break;
-        used[v] = true;
-        for (size_t to = 0; to < n; ++to) {
-            if ((int)to == v) continue;
-            ll w = mat.at(v, to);
-            if (w >= INF) continue;
-            if (dist[v] + w < dist[to]) dist[to] = dist[v] + w;
-        }
-    }
-    delete[] used;
-    return dist;
-}
-
-// compute APSP as ll** (n rows allocated, each row allocated). Caller must free all rows and pointer.
-ll** computeAPSP_with_dijkstra(const Matrix &mat) {
-    size_t n = mat.size();
-    if (n == 0) return nullptr;
-    ll **apsp = new ll*[n];
-    for (size_t i = 0; i < n; ++i) apsp[i] = new ll[n];
-    for (size_t i = 0; i < n; ++i) {
-        ll *row = dijkstra_as_array(mat, (int)i);
-        for (size_t j = 0; j < n; ++j) apsp[i][j] = row[j];
-        delete[] row;
-    }
-    return apsp;
-}
-
 // ---------- Algorithms (brute, brute_apsp, greedy, heur3) ----------
 
 // Brute force from fixed start; use_apsp toggles whether to use APSP distances
-Result solveBruteForce_fixedStart(const Matrix &mat, int startIndex, bool use_apsp = false) {
+Result solveBruteForce_fixedStart(const Matrix &mat, int startIndex) {
     using clock = std::chrono::steady_clock;
     auto t0 = clock::now();
 
@@ -255,7 +212,6 @@ Result solveBruteForce_fixedStart(const Matrix &mat, int startIndex, bool use_ap
     if (n == 0 || startIndex < 0 || (size_t)startIndex >= n) return res;
 
     ll **apsp = nullptr;
-    if (use_apsp) apsp = computeAPSP_with_dijkstra(mat);
 
     // prepare perm array of length n-1 (nodes != start) in ascending order
     size_t plen = (n > 0 ? n - 1 : 0);
@@ -274,7 +230,6 @@ Result solveBruteForce_fixedStart(const Matrix &mat, int startIndex, bool use_ap
         best_cost = 0;
     } else {
         // iterate permutations lexicographically: we already initialized ascending
-        bool first = true;
         while (true) {
             // build tour: tour[0] = start, then perm[0..plen-1]
             int *tour = new int[n];
@@ -357,69 +312,6 @@ Result solveGreedy_fixedStart(const Matrix &mat, int startIndex) {
     return res;
 }
 
-// 2-opt on C array tour (length n)
-void run_2opt_on_array(int *tour, size_t n, const Matrix &mat) {
-    if (n < 4) return;
-    bool improved = true;
-    auto tour_cost_arr = [&](int *t)->ll {
-        long long sum = 0;
-        for (size_t i = 0; i + 1 < n; ++i) {
-            ll w = mat.at(t[i], t[i+1]);
-            if (w >= INF) return -1;
-            sum += w;
-        }
-        ll w = mat.at(t[n-1], t[0]);
-        if (w >= INF) return -1;
-        sum += w;
-        return sum;
-    };
-
-    while (improved) {
-        improved = false;
-        ll base = tour_cost_arr(tour);
-        if (base < 0) break;
-        for (size_t i = 1; i + 1 < n; ++i) {
-            for (size_t k = i + 1; k + 1 <= n - 1; ++k) {
-                // reverse i..k
-                reverse_segment(tour, i, k);
-                ll cand = tour_cost_arr(tour);
-                if (cand >= 0 && cand < base) {
-                    improved = true;
-                    base = cand;
-                    goto next_iter;
-                } else {
-                    // undo
-                    reverse_segment(tour, i, k);
-                }
-            }
-        }
-    next_iter:
-        ;
-    }
-}
-
-// heuristic3: greedy + 2-opt
-Result solveHeuristic3_fixedStart(const Matrix &mat, int startIndex) {
-    using clock = std::chrono::steady_clock;
-    auto t0 = clock::now();
-
-    Result base = solveGreedy_fixedStart(mat, startIndex);
-    if (!base.path || base.path_len == 0) return base;
-
-    int *tour = new int[base.path_len];
-    for (size_t i = 0; i < base.path_len; ++i) tour[i] = base.path[i];
-
-    run_2opt_on_array(tour, base.path_len, mat);
-
-    auto t1 = clock::now();
-    Result res;
-    res.setPathFromArray(tour, base.path_len);
-    res.cost = computeTourCostArray(res.path, res.path_len, mat, nullptr);
-    res.time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-    delete[] tour;
-    return res;
-}
-
 // ---------- run all starts helpers ----------
 
 // Func signature: Result f(const Matrix&, int start)
@@ -470,8 +362,8 @@ int main() {
     if (!allow_brute) std::cout << "(n > " << BRUTE_LIMIT << " -> skipping brute-force algorithms)\n";
 
     // fixed list of algorithm names (C-style)
-    const char *algo_names[] = { "brute", "brute_apsp", "greedy", "heur3" };
-    const int algo_count = 4;
+    const char *algo_names[] = { "brute", "greedy"};
+    const int algo_count = 2;
 
     // Summary arrays (C-style)
     bool ran[algo_count];
@@ -485,7 +377,7 @@ int main() {
 
     // 0) brute (direct)
     if (allow_brute) {
-        Result *resArr = runAllStarts_results(M, [](const Matrix &mat, int s)->Result { return solveBruteForce_fixedStart(mat, s, false); });
+        Result *resArr = runAllStarts_results(M, [](const Matrix &mat, int s)->Result { return solveBruteForce_fixedStart(mat, s); });
         int best = bestStartIndexFromResults(resArr, M.size());
         if (best != -1) {
             ran[0] = true; bestStart[0] = best;
@@ -501,52 +393,18 @@ int main() {
         ran[0] = false; bestStart[0] = -1;
     }
 
-    // 1) brute_apsp
-    if (allow_brute) {
-        Result *resArr = runAllStarts_results(M, [](const Matrix &mat, int s)->Result { return solveBruteForce_fixedStart(mat, s, true); });
-        int best = bestStartIndexFromResults(resArr, M.size());
-        if (best != -1) {
-            ran[1] = true; bestStart[1] = best;
-            bestResult[1] = std::move(resArr[best]);
-            std::cout << "\nAlgorithm brute_apsp -> best start " << (best+1) << "\n";
-            bestResult[1].print();
-        } else {
-            ran[1] = true; bestStart[1] = -1;
-            std::cout << "\nAlgorithm brute_apsp produced no valid tours\n";
-        }
-        delete[] resArr;
-    } else {
-        ran[1] = false; bestStart[1] = -1;
-    }
-
-    // 2) greedy
+    // 1) greedy
     {
         Result *resArr = runAllStarts_results(M, [](const Matrix &mat, int s)->Result { return solveGreedy_fixedStart(mat, s); });
         int best = bestStartIndexFromResults(resArr, M.size());
         if (best != -1) {
-            ran[2] = true; bestStart[2] = best;
-            bestResult[2] = std::move(resArr[best]);
+            ran[1] = true; bestStart[1] = best;
+            bestResult[1] = std::move(resArr[best]);
             std::cout << "\nAlgorithm greedy -> best start " << (best+1) << "\n";
-            bestResult[2].print();
+            bestResult[1].print();
         } else {
-            ran[2] = true; bestStart[2] = -1;
+            ran[1] = true; bestStart[1] = -1;
             std::cout << "\nAlgorithm greedy produced no valid tours\n";
-        }
-        delete[] resArr;
-    }
-
-    // 3) heur3
-    {
-        Result *resArr = runAllStarts_results(M, [](const Matrix &mat, int s)->Result { return solveHeuristic3_fixedStart(mat, s); });
-        int best = bestStartIndexFromResults(resArr, M.size());
-        if (best != -1) {
-            ran[3] = true; bestStart[3] = best;
-            bestResult[3] = std::move(resArr[best]);
-            std::cout << "\nAlgorithm heur3 -> best start " << (best+1) << "\n";
-            bestResult[3].print();
-        } else {
-            ran[3] = true; bestStart[3] = -1;
-            std::cout << "\nAlgorithm heur3 produced no valid tours\n";
         }
         delete[] resArr;
     }
