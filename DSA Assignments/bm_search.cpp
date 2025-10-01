@@ -1,14 +1,13 @@
+#include <cstddef>
 #include <string>
 #include <vector>
 #include <stdexcept>
-#include <algorithm>
 #include <iostream>
 
 static std::vector<int> buildBadChar(const std::string &pat) {
     const int ALPH = 256;
-    std::vector<int> TAB(ALPH, -1);
-    for (int i = 0; i < (int)pat.size(); ++i)
-        TAB[(unsigned char)pat[i]] = i;
+    std::vector<int> TAB(ALPH, (int)pat.size());
+    for (size_t i = 0; i < pat.size() - 1; i++) TAB[(unsigned char)pat[i]] = (int)pat.size() - 1 - i;
     return TAB;
 }
 
@@ -18,21 +17,21 @@ static std::vector<int> bm_search_all(const std::string &text, const std::string
     if (m == 0) return result;
     auto TAB = buildBadChar(pat);
 
-    int s = start_s;
-    while (s <= end_s) {
+    int s = start_s; // start of string // i
+
+    while (s <= end_s/*end_s = n*/) {
         int j = m - 1;
         while (j >= 0 && pat[j] == text[s + j]) --j;
 
-        if (j < 0) {
+        if (j < 0) { // when result found.
             // match at shift s
             result.push_back(s);
             s += m; // simple shift after a full match
-        } else {
-            int bc = j - TAB[(unsigned char)text[s + j]];
-            int shift = std::max(1, bc);
-            s += shift;
+        } else { // shift according to tablet.
+            s += TAB[(unsigned char)text[s + j]];
         }
     }
+    
     return result;
 }
 
