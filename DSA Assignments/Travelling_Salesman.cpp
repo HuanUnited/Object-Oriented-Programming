@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <chrono>
+#include <cstddef>
 #include <iostream>
 #include <limits>
 #include <random>
@@ -33,7 +34,7 @@ ll tourCost(const Matrix &mat, const std::vector<int> &path) {
 }
 
 // generate random matrix with zero diagonal
-Matrix generateRandomMatrix(int n, int minv, int maxv, unsigned int seed = 0, bool symmetric = true) {
+Matrix generateRandomMatrix(int n, int minv = 1, int maxv = 20, unsigned int seed = 0, bool symmetric = false) {
     Matrix M(n, std::vector<ll>(n, 0));
     if (n <= 0) return M;
     if (seed == 0) {
@@ -45,24 +46,19 @@ Matrix generateRandomMatrix(int n, int minv, int maxv, unsigned int seed = 0, bo
     if (symmetric){
     for (int i = 0; i < n; ++i) {
         for (int j = i+1; j < n; ++j) {
-            ll v = dist(rng);
+            int v = dist(rng);
             M[i][j] = v;
             M[j][i] = v;
         }}
-    return M;
-    }
-    else {
-    for (int i = 0; i < n; ++i) {
+    } else {
+    for (int i = 0; i < n; ++i) {{
         for (int j = 0; j < n; ++j) {
-            if (i == j){
-                M[i][j] = 0;
-            }
-            ll v = dist(rng);
-            M[i][j] = v;
-        }}
-    return M;    
+            if (i == j) M[i][j] = 0;
+            else M[i][j] = dist(rng);
+        }
+    }}
     }
-    
+    return M;
 }
 
 // print matrix (small)
@@ -197,39 +193,6 @@ std::pair<std::vector<int>, ll> nearestNeighbor(const Matrix &mat, int startCity
     return {path, c};
 }
 
-// 2-opt improvement (in-place modifies path)
-/*Opt 2 Algorithm
-https://www.youtube.com/watch?v=wsEzZ4F_bS4
-*/
-bool tryTwoOptImprove(const Matrix &mat, std::vector<int> &path, ll &costRef) {
-    int n = (int)path.size();
-    for (int i = 0; i < n - 1; ++i) {
-        for (int k = i + 1; k < n; ++k) {
-            int a = path[i];
-            int b = path[(i+1) % n];
-            int c = path[k];
-            int d = path[(k+1) % n];
-            ll delta = - mat[a][b] - mat[c][d] + mat[a][c] + mat[b][d];
-            if (delta < 0) {
-                std::reverse(path.begin() + i + 1, path.begin() + k + 1);
-                costRef += delta;
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-std::pair<std::vector<int>, ll> heuristicWith2Opt(const Matrix &mat, int startCity, int max2optIter = 1000) {
-    auto [path, cost] = nearestNeighbor(mat, startCity); // See if 2 opt will improve the nearest neighbor heuristics.
-    int iter = 0;
-    while (iter++ < max2optIter) {
-        bool improved = tryTwoOptImprove(mat, path, cost);
-        if (!improved) break;
-    }
-    return {path, cost};
-}
-
 // ----- Experiment runner & reporting -----
 // compute quality percent where:
 // 0% -> heuristic cost == worstCost
@@ -253,7 +216,7 @@ double computeQualityPercent(ll heuristicCost, ll bestCost, ll worstCost) {
 void runExperiments(const std::vector<int> &sizes, int runsPerSize,
                     int minCost, int maxCost, unsigned int seedBase = 0,
                     int brute_time_limit_ms = 10000 /*10s*/,
-                    int startCity = -1 /* -1 => all starts */) {
+                    int startCity = -1 /* -1 => all starts */,bool symmetric = false) {
 
     std::cout << "TSP experiments\n";
     std::cout << "Sizes:";
@@ -271,9 +234,10 @@ void runExperiments(const std::vector<int> &sizes, int runsPerSize,
         int completedBruteRuns = 0;
         for (int run = 0; run < runsPerSize; ++run) {
             unsigned int seed = seedBase + (unsigned int)(n*1000 + run);
-            Matrix M = generateRandomMatrix(n, minCost, maxCost, seed); // non symmetric
+            Matrix M = generateRandomMatrix(n, minCost, maxCost, seed, symmetric); // non symmetric
+            
             std::cout << "[Run " << (run+1) << "/" << runsPerSize << "] seed=" << seed << "\n";
-
+            printMatrix(M);
             const int BRUTE_ALLOW_N = 11;
             bool allowBrute = (n <= BRUTE_ALLOW_N);
 
@@ -329,7 +293,7 @@ void runExperiments(const std::vector<int> &sizes, int runsPerSize,
             long long heurTotalMs = 0;
             for (int s : startsToTest) {
                 auto t0 = Clock::now();
-                auto [path, cost] = heuristicWith2Opt(M, s, 1000);
+                auto [path, cost] = nearestNeighbor(M, s);
                 auto t1 = Clock::now();
                 long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
                 heurTotalMs += ms;
@@ -393,6 +357,11 @@ int main() {
     if(runsPerSize < 1) {std::cout <<"number of runs smaller than 0" << '\n'; return 0;} //error check
     std::cout << '\n';
 
+    bool symmetric{};
+    std::cout <<"symmetric? - 1 for yes, 0 for no: ";
+    size_t t; std::cin>>t;
+    if(t == 1) symmetric = true; else if (t == 0) symmetric = false; else{ std::cout << "error, only 0 or 1."<< '\n'; return 0;}
+
     int minCost = 1;
     int maxCost = 20;
     unsigned int seedBase = 12345u;
@@ -416,7 +385,7 @@ int main() {
     std::cout << "Press Enter to run experiments with startCity=" << startCityInput << " (or Ctrl-C to cancel)...\n";
     std::cin.get();
 
-    runExperiments(sizes, runsPerSize, minCost, maxCost, seedBase, brute_time_limit_ms, startCityInput);
+    runExperiments(sizes, runsPerSize, minCost, maxCost, seedBase, brute_time_limit_ms, startCityInput,symmetric);
 
     std::cout << "Done.\n";
     return 0;
