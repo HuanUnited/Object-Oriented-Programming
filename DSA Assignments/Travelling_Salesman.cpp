@@ -33,7 +33,7 @@ ll tourCost(const Matrix &mat, const std::vector<int> &path) {
 }
 
 // generate random matrix with zero diagonal
-Matrix generateRandomMatrix(int n, int minv, int maxv, unsigned int seed = 0, bool symmetric = false) {
+Matrix generateRandomMatrix(int n, int minv, int maxv, unsigned int seed = 0, bool symmetric = true) {
     Matrix M(n, std::vector<ll>(n, 0));
     if (n <= 0) return M;
     if (seed == 0) {
@@ -274,7 +274,7 @@ void runExperiments(const std::vector<int> &sizes, int runsPerSize,
             Matrix M = generateRandomMatrix(n, minCost, maxCost, seed); // non symmetric
             std::cout << "[Run " << (run+1) << "/" << runsPerSize << "] seed=" << seed << "\n";
 
-            const int BRUTE_ALLOW_N = 15;
+            const int BRUTE_ALLOW_N = 11;
             bool allowBrute = (n <= BRUTE_ALLOW_N);
 
             ll globalBestCost = INF, globalWorstCost = -INF;
@@ -403,7 +403,8 @@ int main() {
     for (int s : sizes) std::cout << s << " ";
     std::cout << "\n";
 
-    std::cout << "Enter starting city index to test (0 .. n-1), or -1 to test ALL starts: ";
+    std::cout << "Enter starting city(citites) index, or -1 to test ALL starts: ";
+
     int startCityInput = -1;
     std::cin >> startCityInput;
     if (!std::cin) {

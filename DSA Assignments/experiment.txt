@@ -1,0 +1,414 @@
+input number of sizes: 5
+
+input number of cities: 4
+6
+8
+10
+12
+
+input number of runs per size: 4
+
+TSP experiment runner (exact + heuristic)
+Default sizes: 4 6 8 10 12 
+Enter starting city(citites) index, or -1 to test ALL starts: -1
+Press Enter to run experiments with startCity=-1 (or Ctrl-C to cancel)...
+
+TSP experiments
+Sizes: 4 6 8 10 12; runs per size: 4
+Cost range: [1,20]
+Start city: ALL (will test every possible start)
+Brute time limit (per-start): 8000 ms
+
+=== Matrix size: 4 ===
+[Run 1/4] seed=16345
+  Brute (start 0): best=46, worst=64, time=0 ms
+  Brute (start 1): best=46, worst=64, time=0 ms
+  Brute (start 2): best=46, worst=64, time=0 ms
+  Brute (start 3): best=46, worst=64, time=0 ms
+  Heuristic (start 0): cost=48, time(ms)=0
+  Heuristic (start 1): cost=-1443, time(ms)=0
+  Heuristic (start 2): cost=46, time(ms)=0
+  Heuristic (start 3): cost=44, time(ms)=0
+  Best heuristic (over tested starts) cost=-1443, total heuristic time(ms)=0
+  Brute overall best=46, worst=64, brute_total_time(ms)=0
+  Quality of heuristic vs brute: 100.00 %
+
+[Run 2/4] seed=16346
+  Brute (start 0): best=36, worst=63, time=0 ms
+  Brute (start 1): best=36, worst=63, time=0 ms
+  Brute (start 2): best=36, worst=63, time=0 ms
+  Brute (start 3): best=36, worst=63, time=0 ms
+  Heuristic (start 0): cost=32, time(ms)=0
+  Heuristic (start 1): cost=52, time(ms)=0
+  Heuristic (start 2): cost=36, time(ms)=0
+  Heuristic (start 3): cost=32, time(ms)=0
+  Best heuristic (over tested starts) cost=32, total heuristic time(ms)=0
+  Brute overall best=36, worst=63, brute_total_time(ms)=0
+  Quality of heuristic vs brute: 100.00 %
+
+[Run 3/4] seed=16347
+  Brute (start 0): best=25, worst=44, time=0 ms
+  Brute (start 1): best=25, worst=44, time=0 ms
+  Brute (start 2): best=25, worst=44, time=0 ms
+  Brute (start 3): best=25, worst=44, time=0 ms
+  Heuristic (start 0): cost=25, time(ms)=0
+  Heuristic (start 1): cost=36, time(ms)=0
+  Heuristic (start 2): cost=25, time(ms)=0
+  Heuristic (start 3): cost=25, time(ms)=0
+  Best heuristic (over tested starts) cost=25, total heuristic time(ms)=0
+  Brute overall best=25, worst=44, brute_total_time(ms)=0
+  Quality of heuristic vs brute: 100.00 %
+
+[Run 4/4] seed=16348
+  Brute (start 0): best=38, worst=71, time=0 ms
+  Brute (start 1): best=38, worst=71, time=0 ms
+  Brute (start 2): best=38, worst=71, time=0 ms
+  Brute (start 3): best=38, worst=71, time=0 ms
+  Heuristic (start 0): cost=38, time(ms)=0
+  Heuristic (start 1): cost=38, time(ms)=0
+  Heuristic (start 2): cost=38, time(ms)=0
+  Heuristic (start 3): cost=38, time(ms)=0
+  Best heuristic (over tested starts) cost=38, total heuristic time(ms)=0
+  Brute overall best=38, worst=71, brute_total_time(ms)=0
+  Quality of heuristic vs brute: 100.00 %
+
+Summary for n=4: average brute time per run (ms): 0.00
+Summary for n=4: average heuristic time per run (ms total over tested starts): 0.00
+
+=== Matrix size: 6 ===
+[Run 1/4] seed=18345
+  Brute (start 0): best=33, worst=106, time=0 ms
+  Brute (start 1): best=33, worst=106, time=0 ms
+  Brute (start 2): best=33, worst=106, time=0 ms
+  Brute (start 3): best=33, worst=106, time=0 ms
+  Brute (start 4): best=33, worst=106, time=0 ms
+  Brute (start 5): best=33, worst=106, time=0 ms
+  Heuristic (start 0): cost=53, time(ms)=0
+  Heuristic (start 1): cost=49, time(ms)=0
+  Heuristic (start 2): cost=27, time(ms)=0
+  Heuristic (start 3): cost=37, time(ms)=0
+  Heuristic (start 4): cost=37, time(ms)=0
+  Heuristic (start 5): cost=46, time(ms)=0
+  Best heuristic (over tested starts) cost=27, total heuristic time(ms)=0
+  Brute overall best=33, worst=106, brute_total_time(ms)=0
+  Quality of heuristic vs brute: 100.00 %
+
+[Run 2/4] seed=18346
+  Brute (start 0): best=31, worst=91, time=0 ms
+  Brute (start 1): best=31, worst=91, time=0 ms
+  Brute (start 2): best=31, worst=91, time=0 ms
+  Brute (start 3): best=31, worst=91, time=0 ms
+  Brute (start 4): best=31, worst=91, time=0 ms
+  Brute (start 5): best=31, worst=91, time=0 ms
+  Heuristic (start 0): cost=39, time(ms)=0
+  Heuristic (start 1): cost=39, time(ms)=0
+  Heuristic (start 2): cost=21, time(ms)=0
+  Heuristic (start 3): cost=31, time(ms)=0
+  Heuristic (start 4): cost=31, time(ms)=0
+  Heuristic (start 5): cost=-30, time(ms)=0
+  Best heuristic (over tested starts) cost=-30, total heuristic time(ms)=0
+  Brute overall best=31, worst=91, brute_total_time(ms)=0
+  Quality of heuristic vs brute: 100.00 %
+
+[Run 3/4] seed=18347
+  Brute (start 0): best=25, worst=92, time=0 ms
+  Brute (start 1): best=25, worst=92, time=0 ms
+  Brute (start 2): best=25, worst=92, time=0 ms
+  Brute (start 3): best=25, worst=92, time=0 ms
+  Brute (start 4): best=25, worst=92, time=0 ms
+  Brute (start 5): best=25, worst=92, time=0 ms
+  Heuristic (start 0): cost=-6467, time(ms)=0
+  Heuristic (start 1): cost=37, time(ms)=0
+  Heuristic (start 2): cost=25, time(ms)=0
+  Heuristic (start 3): cost=37, time(ms)=0
+  Heuristic (start 4): cost=19, time(ms)=0
+  Heuristic (start 5): cost=27, time(ms)=0
+  Best heuristic (over tested starts) cost=-6467, total heuristic time(ms)=0
+  Brute overall best=25, worst=92, brute_total_time(ms)=0
+  Quality of heuristic vs brute: 100.00 %
+
+[Run 4/4] seed=18348
+  Brute (start 0): best=37, worst=98, time=0 ms
+  Brute (start 1): best=37, worst=98, time=0 ms
+  Brute (start 2): best=37, worst=98, time=0 ms
+  Brute (start 3): best=37, worst=98, time=0 ms
+  Brute (start 4): best=37, worst=98, time=0 ms
+  Brute (start 5): best=37, worst=98, time=0 ms
+  Heuristic (start 0): cost=43, time(ms)=0
+  Heuristic (start 1): cost=40, time(ms)=0
+  Heuristic (start 2): cost=42, time(ms)=0
+  Heuristic (start 3): cost=-5736, time(ms)=0
+  Heuristic (start 4): cost=-5746, time(ms)=0
+  Heuristic (start 5): cost=42, time(ms)=0
+  Best heuristic (over tested starts) cost=-5746, total heuristic time(ms)=0
+  Brute overall best=37, worst=98, brute_total_time(ms)=0
+  Quality of heuristic vs brute: 100.00 %
+
+Summary for n=6: average brute time per run (ms): 0.00
+Summary for n=6: average heuristic time per run (ms total over tested starts): 0.00
+
+=== Matrix size: 8 ===
+[Run 1/4] seed=20345
+  Brute (start 0): best=30, worst=135, time=2 ms
+  Brute (start 1): best=30, worst=135, time=2 ms
+  Brute (start 2): best=30, worst=135, time=1 ms
+  Brute (start 3): best=30, worst=135, time=1 ms
+  Brute (start 4): best=30, worst=135, time=1 ms
+  Brute (start 5): best=30, worst=135, time=1 ms
+  Brute (start 6): best=30, worst=135, time=1 ms
+  Brute (start 7): best=30, worst=135, time=1 ms
+  Heuristic (start 0): cost=1, time(ms)=0
+  Heuristic (start 1): cost=-24, time(ms)=0
+  Heuristic (start 2): cost=24, time(ms)=0
+  Heuristic (start 3): cost=34, time(ms)=0
+  Heuristic (start 4): cost=-7, time(ms)=0
+  Heuristic (start 5): cost=-43, time(ms)=0
+  Heuristic (start 6): cost=-24, time(ms)=0
+  Heuristic (start 7): cost=12, time(ms)=0
+  Best heuristic (over tested starts) cost=-43, total heuristic time(ms)=0
+  Brute overall best=30, worst=135, brute_total_time(ms)=10
+  Quality of heuristic vs brute: 100.00 %
+
+[Run 2/4] seed=20346
+  Brute (start 0): best=46, worst=133, time=1 ms
+  Brute (start 1): best=46, worst=133, time=2 ms
+  Brute (start 2): best=46, worst=133, time=2 ms
+  Brute (start 3): best=46, worst=133, time=2 ms
+  Brute (start 4): best=46, worst=133, time=2 ms
+  Brute (start 5): best=46, worst=133, time=1 ms
+  Brute (start 6): best=46, worst=133, time=1 ms
+  Brute (start 7): best=46, worst=133, time=1 ms
+  Heuristic (start 0): cost=-4212, time(ms)=0
+  Heuristic (start 1): cost=13, time(ms)=0
+  Heuristic (start 2): cost=-4504, time(ms)=0
+  Heuristic (start 3): cost=20, time(ms)=0
+  Heuristic (start 4): cost=6, time(ms)=0
+  Heuristic (start 5): cost=16, time(ms)=0
+  Heuristic (start 6): cost=-5867, time(ms)=0
+  Heuristic (start 7): cost=-5829, time(ms)=0
+  Best heuristic (over tested starts) cost=-5867, total heuristic time(ms)=0
+  Brute overall best=46, worst=133, brute_total_time(ms)=12
+  Quality of heuristic vs brute: 100.00 %
+
+[Run 3/4] seed=20347
+  Brute (start 0): best=23, worst=117, time=1 ms
+  Brute (start 1): best=23, worst=117, time=1 ms
+  Brute (start 2): best=23, worst=117, time=1 ms
+  Brute (start 3): best=23, worst=117, time=1 ms
+  Brute (start 4): best=23, worst=117, time=2 ms
+  Brute (start 5): best=23, worst=117, time=2 ms
+  Brute (start 6): best=23, worst=117, time=2 ms
+  Brute (start 7): best=23, worst=117, time=1 ms
+  Heuristic (start 0): cost=16, time(ms)=0
+  Heuristic (start 1): cost=23, time(ms)=0
+  Heuristic (start 2): cost=6, time(ms)=0
+  Heuristic (start 3): cost=-38, time(ms)=0
+  Heuristic (start 4): cost=23, time(ms)=0
+  Heuristic (start 5): cost=26, time(ms)=0
+  Heuristic (start 6): cost=22, time(ms)=0
+  Heuristic (start 7): cost=1, time(ms)=0
+  Best heuristic (over tested starts) cost=-38, total heuristic time(ms)=0
+  Brute overall best=23, worst=117, brute_total_time(ms)=11
+  Quality of heuristic vs brute: 100.00 %
+
+[Run 4/4] seed=20348
+  Brute (start 0): best=38, worst=133, time=1 ms
+  Brute (start 1): best=38, worst=133, time=1 ms
+  Brute (start 2): best=38, worst=133, time=1 ms
+  Brute (start 3): best=38, worst=133, time=1 ms
+  Brute (start 4): best=38, worst=133, time=1 ms
+  Brute (start 5): best=38, worst=133, time=1 ms
+  Brute (start 6): best=38, worst=133, time=1 ms
+  Brute (start 7): best=38, worst=133, time=2 ms
+  Heuristic (start 0): cost=38, time(ms)=0
+  Heuristic (start 1): cost=-6, time(ms)=0
+  Heuristic (start 2): cost=46, time(ms)=0
+  Heuristic (start 3): cost=-39, time(ms)=0
+  Heuristic (start 4): cost=46, time(ms)=0
+  Heuristic (start 5): cost=43, time(ms)=0
+  Heuristic (start 6): cost=-4352, time(ms)=0
+  Heuristic (start 7): cost=49, time(ms)=0
+  Best heuristic (over tested starts) cost=-4352, total heuristic time(ms)=0
+  Brute overall best=38, worst=133, brute_total_time(ms)=9
+  Quality of heuristic vs brute: 100.00 %
+
+Summary for n=8: average brute time per run (ms): 10.50
+Summary for n=8: average heuristic time per run (ms total over tested starts): 0.00
+
+=== Matrix size: 10 ===
+[Run 1/4] seed=22345
+  Brute (start 0): best=43, worst=189, time=104 ms
+  Brute (start 1): best=43, worst=189, time=102 ms
+  Brute (start 2): best=43, worst=189, time=106 ms
+  Brute (start 3): best=43, worst=189, time=101 ms
+  Brute (start 4): best=43, worst=189, time=101 ms
+  Brute (start 5): best=43, worst=189, time=101 ms
+  Brute (start 6): best=43, worst=189, time=103 ms
+  Brute (start 7): best=43, worst=189, time=102 ms
+  Brute (start 8): best=43, worst=189, time=104 ms
+  Brute (start 9): best=43, worst=189, time=104 ms
+  Heuristic (start 0): cost=-238, time(ms)=0
+  Heuristic (start 1): cost=-6380, time(ms)=0
+  Heuristic (start 2): cost=-121, time(ms)=0
+  Heuristic (start 3): cost=44, time(ms)=0
+  Heuristic (start 4): cost=-34, time(ms)=0
+  Heuristic (start 5): cost=-9, time(ms)=0
+  Heuristic (start 6): cost=-30, time(ms)=0
+  Heuristic (start 7): cost=-262, time(ms)=0
+  Heuristic (start 8): cost=44, time(ms)=0
+  Heuristic (start 9): cost=-13, time(ms)=0
+  Best heuristic (over tested starts) cost=-6380, total heuristic time(ms)=0
+  Brute overall best=43, worst=189, brute_total_time(ms)=1028
+  Quality of heuristic vs brute: 100.00 %
+
+[Run 2/4] seed=22346
+  Brute (start 0): best=23, worst=167, time=104 ms
+  Brute (start 1): best=23, worst=167, time=106 ms
+  Brute (start 2): best=23, worst=167, time=104 ms
+  Brute (start 3): best=23, worst=167, time=104 ms
+  Brute (start 4): best=23, worst=167, time=107 ms
+  Brute (start 5): best=23, worst=167, time=106 ms
+  Brute (start 6): best=23, worst=167, time=103 ms
+  Brute (start 7): best=23, worst=167, time=106 ms
+  Brute (start 8): best=23, worst=167, time=112 ms
+  Brute (start 9): best=23, worst=167, time=109 ms
+  Heuristic (start 0): cost=-6177, time(ms)=0
+  Heuristic (start 1): cost=-25, time(ms)=0
+  Heuristic (start 2): cost=-5618, time(ms)=0
+  Heuristic (start 3): cost=-137, time(ms)=0
+  Heuristic (start 4): cost=-3719, time(ms)=0
+  Heuristic (start 5): cost=-6544, time(ms)=0
+  Heuristic (start 6): cost=23, time(ms)=0
+  Heuristic (start 7): cost=29, time(ms)=0
+  Heuristic (start 8): cost=-38, time(ms)=0
+  Heuristic (start 9): cost=-4874, time(ms)=0
+  Best heuristic (over tested starts) cost=-6544, total heuristic time(ms)=0
+  Brute overall best=23, worst=167, brute_total_time(ms)=1061
+  Quality of heuristic vs brute: 100.00 %
+
+[Run 3/4] seed=22347
+  Brute (start 0): best=43, worst=177, time=114 ms
+  Brute (start 1): best=43, worst=177, time=103 ms
+  Brute (start 2): best=43, worst=177, time=101 ms
+  Brute (start 3): best=43, worst=177, time=102 ms
+  Brute (start 4): best=43, worst=177, time=104 ms
+  Brute (start 5): best=43, worst=177, time=104 ms
+  Brute (start 6): best=43, worst=177, time=103 ms
+  Brute (start 7): best=43, worst=177, time=106 ms
+  Brute (start 8): best=43, worst=177, time=104 ms
+  Brute (start 9): best=43, worst=177, time=103 ms
+  Heuristic (start 0): cost=-4699, time(ms)=0
+  Heuristic (start 1): cost=22, time(ms)=0
+  Heuristic (start 2): cost=-6108, time(ms)=0
+  Heuristic (start 3): cost=11, time(ms)=0
+  Heuristic (start 4): cost=-4247, time(ms)=0
+  Heuristic (start 5): cost=-3329, time(ms)=0
+  Heuristic (start 6): cost=-10, time(ms)=0
+  Heuristic (start 7): cost=-6640, time(ms)=0
+  Heuristic (start 8): cost=-58, time(ms)=0
+  Heuristic (start 9): cost=-6715, time(ms)=0
+  Best heuristic (over tested starts) cost=-6715, total heuristic time(ms)=0
+  Brute overall best=43, worst=177, brute_total_time(ms)=1044
+  Quality of heuristic vs brute: 100.00 %
+
+[Run 4/4] seed=22348
+  Brute (start 0): best=31, worst=175, time=102 ms
+  Brute (start 1): best=31, worst=175, time=104 ms
+  Brute (start 2): best=31, worst=175, time=105 ms
+  Brute (start 3): best=31, worst=175, time=101 ms
+  Brute (start 4): best=31, worst=175, time=102 ms
+  Brute (start 5): best=31, worst=175, time=103 ms
+  Brute (start 6): best=31, worst=175, time=102 ms
+  Brute (start 7): best=31, worst=175, time=104 ms
+  Brute (start 8): best=31, worst=175, time=101 ms
+  Brute (start 9): best=31, worst=175, time=103 ms
+  Heuristic (start 0): cost=38, time(ms)=0
+  Heuristic (start 1): cost=-3293, time(ms)=0
+  Heuristic (start 2): cost=-3978, time(ms)=0
+  Heuristic (start 3): cost=-85, time(ms)=0
+  Heuristic (start 4): cost=-2739, time(ms)=0
+  Heuristic (start 5): cost=-5224, time(ms)=0
+  Heuristic (start 6): cost=-6693, time(ms)=0
+  Heuristic (start 7): cost=-317, time(ms)=0
+  Heuristic (start 8): cost=-7449, time(ms)=0
+  Heuristic (start 9): cost=35, time(ms)=0
+  Best heuristic (over tested starts) cost=-7449, total heuristic time(ms)=0
+  Brute overall best=31, worst=175, brute_total_time(ms)=1027
+  Quality of heuristic vs brute: 100.00 %
+
+Summary for n=10: average brute time per run (ms): 1040.00
+Summary for n=10: average heuristic time per run (ms total over tested starts): 0.00
+
+=== Matrix size: 12 ===
+[Run 1/4] seed=24345
+  (Skipping brute-force for n=12 — too large.)
+  Heuristic (start 0): cost=-5317, time(ms)=0
+  Heuristic (start 1): cost=-5274, time(ms)=0
+  Heuristic (start 2): cost=-3198, time(ms)=0
+  Heuristic (start 3): cost=-4974, time(ms)=0
+  Heuristic (start 4): cost=-113, time(ms)=0
+  Heuristic (start 5): cost=-280, time(ms)=0
+  Heuristic (start 6): cost=61, time(ms)=0
+  Heuristic (start 7): cost=-2452, time(ms)=0
+  Heuristic (start 8): cost=-5339, time(ms)=0
+  Heuristic (start 9): cost=61, time(ms)=0
+  Heuristic (start 10): cost=5, time(ms)=0
+  Heuristic (start 11): cost=54, time(ms)=0
+  Best heuristic (over tested starts) cost=-5339, total heuristic time(ms)=0
+  No brute results available for comparison (n too large or timed out)
+
+[Run 2/4] seed=24346
+  (Skipping brute-force for n=12 — too large.)
+  Heuristic (start 0): cost=-7406, time(ms)=0
+  Heuristic (start 1): cost=-9328, time(ms)=0
+  Heuristic (start 2): cost=41, time(ms)=0
+  Heuristic (start 3): cost=-4361, time(ms)=0
+  Heuristic (start 4): cost=7, time(ms)=0
+  Heuristic (start 5): cost=-4211, time(ms)=0
+  Heuristic (start 6): cost=37, time(ms)=0
+  Heuristic (start 7): cost=-6617, time(ms)=0
+  Heuristic (start 8): cost=55, time(ms)=0
+  Heuristic (start 9): cost=40, time(ms)=0
+  Heuristic (start 10): cost=-447, time(ms)=0
+  Heuristic (start 11): cost=54, time(ms)=0
+  Best heuristic (over tested starts) cost=-9328, total heuristic time(ms)=0
+  No brute results available for comparison (n too large or timed out)
+
+[Run 3/4] seed=24347
+  (Skipping brute-force for n=12 — too large.)
+  Heuristic (start 0): cost=-139, time(ms)=0
+  Heuristic (start 1): cost=50, time(ms)=0
+  Heuristic (start 2): cost=-5282, time(ms)=0
+  Heuristic (start 3): cost=-22, time(ms)=0
+  Heuristic (start 4): cost=-46, time(ms)=0
+  Heuristic (start 5): cost=-3233, time(ms)=0
+  Heuristic (start 6): cost=-7307, time(ms)=0
+  Heuristic (start 7): cost=-6348, time(ms)=0
+  Heuristic (start 8): cost=50, time(ms)=0
+  Heuristic (start 9): cost=-80, time(ms)=0
+  Heuristic (start 10): cost=-51, time(ms)=0
+  Heuristic (start 11): cost=-6666, time(ms)=0
+  Best heuristic (over tested starts) cost=-7307, total heuristic time(ms)=0
+  No brute results available for comparison (n too large or timed out)
+
+[Run 4/4] seed=24348
+  (Skipping brute-force for n=12 — too large.)
+  Heuristic (start 0): cost=-5316, time(ms)=0
+  Heuristic (start 1): cost=-5876, time(ms)=0
+  Heuristic (start 2): cost=-138, time(ms)=0
+  Heuristic (start 3): cost=-125, time(ms)=0
+  Heuristic (start 4): cost=4, time(ms)=0
+  Heuristic (start 5): cost=-3991, time(ms)=0
+  Heuristic (start 6): cost=50, time(ms)=0
+  Heuristic (start 7): cost=-1226, time(ms)=0
+  Heuristic (start 8): cost=-118, time(ms)=0
+  Heuristic (start 9): cost=18, time(ms)=0
+  Heuristic (start 10): cost=-5195, time(ms)=0
+  Heuristic (start 11): cost=-448, time(ms)=0
+  Best heuristic (over tested starts) cost=-5876, total heuristic time(ms)=0
+  No brute results available for comparison (n too large or timed out)
+
+Summary for n=12: brute not completed in any run or skipped.
+Summary for n=12: average heuristic time per run (ms total over tested starts): 0.00
+
+Done.
