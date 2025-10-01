@@ -1,7 +1,3 @@
-// tsp_experiment_with_start.cpp
-// C++17
-// Adds interactive choice of start city (single start or -1 for all starts)
-
 #include <algorithm>
 #include <chrono>
 #include <iostream>
@@ -21,6 +17,7 @@ struct TSPResult {
     long long time_ms = 0;
 };
 
+// Simplified Matrix
 using Matrix = std::vector<std::vector<ll>>;
 
 // compute cost of a cyclic tour (path[0] -> path[1] -> ... -> path[n-1] -> path[0])
@@ -35,8 +32,8 @@ ll tourCost(const Matrix &mat, const std::vector<int> &path) {
     return sum;
 }
 
-// generate symmetric random matrix with zero diagonal
-Matrix generateRandomMatrix(int n, int minv, int maxv, unsigned int seed = 0) {
+// generate random matrix with zero diagonal
+Matrix generateRandomMatrix(int n, int minv, int maxv, unsigned int seed = 0, bool symmetric = false) {
     Matrix M(n, std::vector<ll>(n, 0));
     if (n <= 0) return M;
     if (seed == 0) {
@@ -44,19 +41,36 @@ Matrix generateRandomMatrix(int n, int minv, int maxv, unsigned int seed = 0) {
     }
     std::mt19937_64 rng(seed);
     std::uniform_int_distribution<ll> dist(minv, maxv);
+
+    if (symmetric){
     for (int i = 0; i < n; ++i) {
         for (int j = i+1; j < n; ++j) {
             ll v = dist(rng);
             M[i][j] = v;
             M[j][i] = v;
-        }
-    }
+        }}
     return M;
+    }
+    else {
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            if (i == j){
+                M[i][j] = 0;
+            }
+            ll v = dist(rng);
+            M[i][j] = v;
+        }}
+    return M;    
+    }
+    
 }
 
 // print matrix (small)
 void printMatrix(const Matrix &M) {
     int n = (int)M.size();
+
+    if (n > 15) return; // Stops printing if matrix is too big.
+
     std::cout << "Matrix " << n << "x" << n << ":\n";
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
@@ -79,32 +93,36 @@ struct BruteResultBundle {
 
 BruteResultBundle solveBruteExact(const Matrix &mat, int startCity, long long time_limit_ms = 0) {
     BruteResultBundle out;
-    int n = (int)mat.size();
-    if (n <= 0) return out;
+    
+    int n = (int)mat.size(); // gets matrix size
+    if (n <= 0) return out; // error halt.
+
     // prepare list of cities with start fixed at front
     std::vector<int> cities(n);
     for (int i = 0; i < n; ++i) cities[i] = i;
     // move startCity to index 0
     if (startCity != 0) std::swap(cities[0], cities[startCity]);
 
-    // We'll permute cities[1..n-1]
+    // We'll permute cities[1..n-1] using std::vector permutation function.
     std::vector<int> current = cities;
     std::vector<int> toPerm(current.begin() + 1, current.end());
 
+    // Best and worst path values
     ll bestCost = INF;
     std::vector<int> bestPath;
     ll worstCost = -INF;
     std::vector<int> worstPath;
 
+    // Brute Force Solving using std::next permutation.
     auto t0 = Clock::now();
     bool timedOut = false;
     std::sort(toPerm.begin(), toPerm.end());
     do {
         // construct full path with fixed start
         std::vector<int> path;
-        path.reserve(n);
-        path.push_back(cities[0]);
-        for (int x : toPerm) path.push_back(x);
+        path.reserve(n); // avoid errors.
+        path.push_back(cities[0]); //adding into path starting city
+        for (int x : toPerm) path.push_back(x); // adding into path next permutation.
         ll c = tourCost(mat, path);
         if (c < bestCost) {
             bestCost = c;
@@ -115,6 +133,7 @@ BruteResultBundle solveBruteExact(const Matrix &mat, int startCity, long long ti
             worstPath = path;
         }
 
+        // If past time limit // Too long.
         if (time_limit_ms > 0) {
             auto now = Clock::now();
             long long elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - t0).count();
@@ -129,29 +148,33 @@ BruteResultBundle solveBruteExact(const Matrix &mat, int startCity, long long ti
     long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
 
     if (!bestPath.empty()) {
-        out.best.path = std::move(bestPath);
+        out.best.path = std::move(bestPath); // move semantics
         out.best.cost = bestCost;
         out.best.time_ms = ms;
     }
     if (!worstPath.empty()) {
-        out.worst.path = std::move(worstPath);
+        out.worst.path = std::move(worstPath); // move semantics
         out.worst.cost = worstCost;
         out.worst.time_ms = ms;
     }
-    out.timedOut = timedOut;
+    out.timedOut = timedOut; // if timed out.
     return out;
 }
 
 // ----- Heuristic: nearest neighbor + 2-opt -----
+/*
+Takes in the matrix and starting city, uses std pair to output the algorithm's chosen path and score.
+*/
 std::pair<std::vector<int>, ll> nearestNeighbor(const Matrix &mat, int startCity) {
     int n = (int)mat.size();
     std::vector<int> path;
-    path.reserve(n);
-    std::vector<char> used(n, 0);
+    path.reserve(n); //error.
+    std::vector<char> used(n, 0); //Checks to see if city has been used
     int cur = startCity;
     path.push_back(cur);
-    used[cur] = 1;
-    for (int step = 1; step < n; ++step) {
+    used[cur] = 1; // Marks starting city.
+
+    for (int step = 1; step < n; ++step) { // nearestNeighbor selection.
         int bestNext = -1;
         ll bestCost = INF;
         for (int j = 0; j < n; ++j) {
@@ -166,6 +189,7 @@ std::pair<std::vector<int>, ll> nearestNeighbor(const Matrix &mat, int startCity
         used[bestNext] = 1;
         cur = bestNext;
     }
+
     // if something went wrong (not all cities added), fill remaining
     for (int j = 0; j < n; ++j) if (!used[j]) path.push_back(j);
 
@@ -174,6 +198,9 @@ std::pair<std::vector<int>, ll> nearestNeighbor(const Matrix &mat, int startCity
 }
 
 // 2-opt improvement (in-place modifies path)
+/*Opt 2 Algorithm
+https://www.youtube.com/watch?v=wsEzZ4F_bS4
+*/
 bool tryTwoOptImprove(const Matrix &mat, std::vector<int> &path, ll &costRef) {
     int n = (int)path.size();
     for (int i = 0; i < n - 1; ++i) {
@@ -194,7 +221,7 @@ bool tryTwoOptImprove(const Matrix &mat, std::vector<int> &path, ll &costRef) {
 }
 
 std::pair<std::vector<int>, ll> heuristicWith2Opt(const Matrix &mat, int startCity, int max2optIter = 1000) {
-    auto [path, cost] = nearestNeighbor(mat, startCity);
+    auto [path, cost] = nearestNeighbor(mat, startCity); // See if 2 opt will improve the nearest neighbor heuristics.
     int iter = 0;
     while (iter++ < max2optIter) {
         bool improved = tryTwoOptImprove(mat, path, cost);
@@ -244,10 +271,10 @@ void runExperiments(const std::vector<int> &sizes, int runsPerSize,
         int completedBruteRuns = 0;
         for (int run = 0; run < runsPerSize; ++run) {
             unsigned int seed = seedBase + (unsigned int)(n*1000 + run);
-            Matrix M = generateRandomMatrix(n, minCost, maxCost, seed);
+            Matrix M = generateRandomMatrix(n, minCost, maxCost, seed); // non symmetric
             std::cout << "[Run " << (run+1) << "/" << runsPerSize << "] seed=" << seed << "\n";
 
-            const int BRUTE_ALLOW_N = 11;
+            const int BRUTE_ALLOW_N = 15;
             bool allowBrute = (n <= BRUTE_ALLOW_N);
 
             ll globalBestCost = INF, globalWorstCost = -INF;
