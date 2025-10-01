@@ -370,8 +370,29 @@ void runExperiments(const std::vector<int> &sizes, int runsPerSize,
 
 // ----- main: interactive start choice -----
 int main() {
-    std::vector<int> sizes = {4, 6, 8, 10}; // default sizes
-    int runsPerSize = 4;
+
+    int number_of_sizes{};
+    std::cout << "input number of sizes: ";
+    std::cin >> number_of_sizes;
+    std::cout << '\n';
+    if(number_of_sizes < 0) {std::cout <<"Number of sizes smaller than zero"<< '\n'; return 0;} //error check
+
+    std::vector<int> sizes{};
+    std::cout << "input number of cities: ";
+    for (int i = 0; i < number_of_sizes; i++){
+        int x{};
+        std::cin >> x;
+        if(x <= 2) {std::cout <<"number of cities smaller than 2" << '\n'; return 0;} //error check
+        sizes.push_back(x);
+    }
+    std::cout << '\n';
+
+    int runsPerSize{};
+    std::cout << "input number of runs per size: ";
+    std::cin >> runsPerSize;
+    if(runsPerSize < 1) {std::cout <<"number of runs smaller than 0" << '\n'; return 0;} //error check
+    std::cout << '\n';
+
     int minCost = 1;
     int maxCost = 20;
     unsigned int seedBase = 12345u;
