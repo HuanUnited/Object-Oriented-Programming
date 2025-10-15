@@ -35,6 +35,8 @@ Notes:
 _builtin_popcount is prints the number of set bits in a number. EG: prints the
 number of bits that are set to true.
 
+for if without builtin_popcount:
+
 
 */
 
@@ -277,17 +279,25 @@ class BitVector {
   size_t weight() const {
     size_t cnt = 0;
     size_t nbytes = bytes_for_bits(nbits);
-    for (size_t i = 0; i < nbytes; ++i) {
-      cnt += __builtin_popcount(static_cast<unsigned int>(data[i]));
+    // for (size_t i = 0; i < nbytes; ++i) {
+    //   cnt += __builtin_popcount(static_cast<unsigned int>(data[i]));
+    // }
+    // // subtract bits in spare area if any (they should be cleared on
+    // operations,
+    // // but safe)
+    // // TODO: What does this do and why.
+    // if (nbytes && (nbits % BITS_PER_BYTE != 0)) {
+    //   byte_t mask = last_byte_mask();
+    //   byte_t spare = static_cast<byte_t>(data[nbytes - 1] & ~mask);
+    //   if (spare) cnt -= __builtin_popcount(static_cast<unsigned int>(spare));
+    // }
+
+    for (size_t i = 0; i < nbits; ++i) {
+      if (get(i)) {
+        cnt++;
+      }
     }
-    // subtract bits in spare area if any (they should be cleared on operations,
-    // but safe)
-    // TODO: What does this do and why.
-    if (nbytes && (nbits % BITS_PER_BYTE != 0)) {
-      byte_t mask = last_byte_mask();
-      byte_t spare = static_cast<byte_t>(data[nbytes - 1] & ~mask);
-      if (spare) cnt -= __builtin_popcount(static_cast<unsigned int>(spare));
-    }
+
     return cnt;
   }
 
