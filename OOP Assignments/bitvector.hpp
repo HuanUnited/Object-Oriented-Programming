@@ -278,7 +278,7 @@ class BitVector {
   // Вес вектора (количество единичных компонент).
   size_t weight() const {
     size_t cnt = 0;
-    size_t nbytes = bytes_for_bits(nbits);
+    // size_t nbytes = bytes_for_bits(nbits);
     // for (size_t i = 0; i < nbytes; ++i) {
     //   cnt += __builtin_popcount(static_cast<unsigned int>(data[i]));
     // }
