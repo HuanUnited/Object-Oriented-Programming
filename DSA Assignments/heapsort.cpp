@@ -21,6 +21,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <cstddef>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -60,40 +61,67 @@ class Heap {
     y = std::move(temp);
   }
 
-  void maxHeapify(int parent, int size) {
-    int largest{parent};
-    int left{getLeftChild(parent)};
-    int right{getRightChild(parent)};
+  // void maxHeapify(int parent, int size) {
+  //   int largest{parent};
+  //   int left{getLeftChild(parent)};
+  //   int right{getRightChild(parent)};
 
-    if (left < size && m_arr[left] > m_arr[largest]) largest = left;
+  //   if (left < size && m_arr[left] > m_arr[largest]) largest = left;
 
-    if (right < size && m_arr[right] > m_arr[largest]) largest = right;
+  //   if (right < size && m_arr[right] > m_arr[largest]) largest = right;
 
-    if (largest != parent) {
-      swap(m_arr[parent], m_arr[largest]);
-      maxHeapify(largest, size);
+  //   if (largest != parent) {
+  //     swap(m_arr[parent], m_arr[largest]);
+  //     maxHeapify(largest, size);
+  //   }
+  // }
+
+  // void buildHeap() {
+  //   for (int i = (m_size - 1) / 2; i >= 0; i--) {
+  //     maxHeapify(i, m_size);
+  //   }
+  // }
+
+  void maxHeapify(int start, int end) {
+    int parent = start;
+
+    while (true) {
+      int largest = parent;
+      int left = getLeftChild(parent);
+      int right = getRightChild(parent);
+
+      if (left <= end && m_arr[left] > m_arr[largest]) largest = left;
+      if (right <= end && m_arr[right] > m_arr[largest]) largest = right;
+
+      if (largest != parent) {
+        swap(m_arr[parent], m_arr[largest]);
+        parent = largest;  // continue heapifying down
+      } else {
+        break;  // no more swaps needed
+      }
     }
   }
 
-  void buildHeap() {
-    for (int i = (m_size - 1) / 2; i >= 0; i--) {
-      maxHeapify(i, m_size);
+  // Build max heap
+  void buildMaxHeap() {
+    int lastParent = (m_size - 2) / 2;  // last node with children
+    for (int i = lastParent; i >= 0; --i) {
+      maxHeapify(i, m_size - 1);
     }
   }
 
+  // Iterative heapsort
   void sortHeap() {
-    size_t n{m_size};
-    buildHeap();
-    for (size_t i = n - 1; i > 0; i--) {
-      swap(m_arr[0], m_arr[i]);
-      // print();
-      maxHeapify(0, i);
+    buildMaxHeap();
+    for (int end = m_size - 1; end > 0; --end) {
+      swap(m_arr[0], m_arr[end]);  // move max to the end
+      maxHeapify(0, end - 1);      // heapify reduced heap
     }
-    assert(isSorted() == true);
+    assert(isSorted());
   }
 
   bool isSorted() {
-    for (size_t i = 0; i < m_size - 1; i++) {
+    for (size_t i = 0; i < (int)m_size - 1; i++) {
       if (m_arr[i] > m_arr[i + 1]) {
         return false;
       }
@@ -249,7 +277,8 @@ std::vector<int> readVectorFromTxt(const std::string &fname) {
 // Deterministic per-dataset seed function
 unsigned int datasetSeed(size_t n, int lo, int hi) {
   uint64_t s = 1469598103934665603ull;
-  s ^= n; s *= 1099511628211ull;
+  s ^= n;
+  s *= 1099511628211ull;
   s ^= static_cast<uint64_t>(lo + 0x9e3779b1);
   s *= 1099511628211ull;
   s ^= static_cast<uint64_t>(hi ^ 0x9e3779b1);
@@ -268,7 +297,7 @@ std::vector<int> genRandomVector(size_t n, int lo, int hi, unsigned int seed) {
 }
 
 double timeSortHeapOnVector(const std::vector<int> &vec) {
-  Heap h = heapFromVector(vec); // copy into Heap (fresh)
+  Heap h = heapFromVector(vec);  // copy into Heap (fresh)
   auto start = std::chrono::steady_clock::now();
   h.sortHeap();
   auto stop = std::chrono::steady_clock::now();
@@ -277,7 +306,8 @@ double timeSortHeapOnVector(const std::vector<int> &vec) {
     std::cerr << "ERROR: heap.sortHeap() produced unsorted result!\n";
     // Optionally dump a few elements for debugging
     for (size_t i = 0; i < std::min<size_t>(10, h.size()); ++i)
-      std::cerr << h.at(i) << (i + 1 == std::min<size_t>(10, h.size()) ? '\n' : ' ');
+      std::cerr << h.at(i)
+                << (i + 1 == std::min<size_t>(10, h.size()) ? '\n' : ' ');
     std::terminate();
   }
   return std::chrono::duration<double, std::milli>(stop - start).count();
@@ -286,11 +316,8 @@ double timeSortHeapOnVector(const std::vector<int> &vec) {
 int main() {
   // dataset specs
   const std::vector<size_t> sizes = {10000u, 100000u, 1000000u};
-  const std::vector<std::pair<int,int>> ranges = {
-    {-10, 10},
-    {-1000, 1000},
-    {-100000, 100000}
-  };
+  const std::vector<std::pair<int, int>> ranges = {
+      {-10, 10}, {-1000, 1000}, {-100000, 100000}};
 
   // create/open CSV and write header (overwrite existing file)
   std::ofstream csv("timings.csv", std::ios::out);
@@ -303,7 +330,9 @@ int main() {
       unsigned int seed = datasetSeed(n, lo, hi);
       std::cout << "Generating dataset n=" << n << " range=[" << lo << ',' << hi
                 << "] seed=" << seed << " ...\n";
-      std::string fname = "data_" + std::to_string(n) + "_" + std::to_string(lo) + "_" + std::to_string(hi) + ".txt";
+      std::string fname = "data_" + std::to_string(n) + "_" +
+                          std::to_string(lo) + "_" + std::to_string(hi) +
+                          ".txt";
 
       // Generate and write dataset (only if you want to regenerate every run)
       std::vector<int> data = genRandomVector(n, lo, hi, seed);
@@ -314,7 +343,7 @@ int main() {
       runs.reserve(3);
       bool ok = true;
       for (int r = 0; r < 3; ++r) {
-        std::cout << "  Run " << (r+1) << " ... " << std::flush;
+        std::cout << "  Run " << (r + 1) << " ... " << std::flush;
         double t = timeSortHeapOnVector(data);
         runs.push_back(t);
         std::cout << std::fixed << std::setprecision(2) << t << " ms\n";
@@ -323,14 +352,14 @@ int main() {
 
       // append to CSV
       std::ofstream csv_append("timings.csv", std::ios::app);
-      csv_append << n << ',' << lo << ',' << hi << ','
-                 << std::fixed << std::setprecision(3)
-                 << runs[0] << ',' << runs[1] << ',' << runs[2] << ',' << mean << ',' << (ok ? "1" : "0")
-                 << '\n';
+      csv_append << n << ',' << lo << ',' << hi << ',' << std::fixed
+                 << std::setprecision(3) << runs[0] << ',' << runs[1] << ','
+                 << runs[2] << ',' << mean << ',' << (ok ? "1" : "0") << '\n';
       csv_append.close();
     }
   }
 
-  std::cout << "All experiments complete. See timings.csv and data_*.txt files.\n";
+  std::cout
+      << "All experiments complete. See timings.csv and data_*.txt files.\n";
   return 0;
 }
