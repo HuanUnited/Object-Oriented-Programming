@@ -37,6 +37,8 @@ number of bits that are set to true.
 
 for if without builtin_popcount:
 
+sizes dont need to match.
+
 
 */
 
@@ -54,6 +56,10 @@ using byte_t = uint8_t;
 using pair = std::pair<size_t, size_t>;
 static constexpr size_t BITS_PER_BYTE = CHAR_BIT;  // = 8.
 
+inline size_t max(size_t a, size_t b){
+  return (a >= b ? a : b );
+}
+
 class BitVector {
  public:
   // Byte to Bit converter
@@ -61,7 +67,6 @@ class BitVector {
     return (bits + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
   }
 
-  // TODO: What does this do?
   // Clean garbage bits and preserve valid bits (т.е: Valid bit filter.)
   byte_t last_byte_mask() const {
     size_t rem =
@@ -312,12 +317,13 @@ class BitVector {
 
   // Bitwise operators: &, |, ^ and their compound forms
   BitVector operator&(const BitVector& rhs) const {
-    if (nbits != rhs.nbits)
-      throw std::invalid_argument("Sizes must match for &");
+    // if (nbits != rhs.nbits) {
+    //   throw std::invalid_argument("Sizes must match for &");
+    // }
     BitVector out(*this);
-    size_t nbytes = bytes_for_bits(nbits);
+    size_t nbytes = bytes_for_bits(max(nbits,rhs.nbits));
     for (size_t i = 0; i < nbytes; ++i) out.data[i] &= rhs.data[i];
-    if (nbytes && (nbits % BITS_PER_BYTE != 0))
+    if (nbytes && (max(nbits,rhs.nbits) % BITS_PER_BYTE != 0))
       out.data[nbytes - 1] &= out.last_byte_mask();
     return out;
   }
@@ -327,12 +333,12 @@ class BitVector {
   }
 
   BitVector operator|(const BitVector& rhs) const {
-    if (nbits != rhs.nbits)
-      throw std::invalid_argument("Sizes must match for |");
+    // if (nbits != rhs.nbits)
+    //   throw std::invalid_argument("Sizes must match for |");
     BitVector out(*this);
-    size_t nbytes = bytes_for_bits(nbits);
+    size_t nbytes = bytes_for_bits(max(nbits,rhs.nbits));
     for (size_t i = 0; i < nbytes; ++i) out.data[i] |= rhs.data[i];
-    if (nbytes && (nbits % BITS_PER_BYTE != 0))
+    if (nbytes && (max(nbits,rhs.nbits) % BITS_PER_BYTE != 0))
       out.data[nbytes - 1] &= out.last_byte_mask();
     return out;
   }
@@ -342,12 +348,12 @@ class BitVector {
   }
 
   BitVector operator^(const BitVector& rhs) const {
-    if (nbits != rhs.nbits)
-      throw std::invalid_argument("Sizes must match for ^");
+    // if (nbits != rhs.nbits)
+      // throw std::invalid_argument("Sizes must match for ^");
     BitVector out(*this);
-    size_t nbytes = bytes_for_bits(nbits);
+    size_t nbytes = bytes_for_bits(max(nbits,rhs.nbits));
     for (size_t i = 0; i < nbytes; ++i) out.data[i] ^= rhs.data[i];
-    if (nbytes && (nbits % BITS_PER_BYTE != 0))
+    if (nbytes && (max(nbits,rhs.nbits) % BITS_PER_BYTE != 0))
       out.data[nbytes - 1] &= out.last_byte_mask();
     return out;
   }
@@ -428,3 +434,4 @@ std::istream& operator>>(std::istream& is, BitVector& bv) {
   // Returns the text.
   return is;
 }
+
