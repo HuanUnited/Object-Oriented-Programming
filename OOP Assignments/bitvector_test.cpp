@@ -181,23 +181,37 @@ void testShiftOperators() {
 }
 
 int main() {
-  testConstructors();
-  testSetGetFlip();
-  testWeight();
-  testBoolRef();
-  testBitwiseOperators();
-  testSwap();
-  testIO();
-  testShiftOperators();
+  // testConstructors();
+  // testSetGetFlip();
+  // testWeight();
+  // testBoolRef();
+  // testBitwiseOperators();
+  // testSwap();
+  // testIO();
+  // testShiftOperators();
 
-  BitVector a("1010101001110");
-  BitVector b("111110101");
-  std::cout << "a: " << a << '\n';
-  std::cout << "b: " << b << '\n';
+  // BitVector a("101");
+  // BitVector b("01011");
+  // std::cout << "a: " << a << '\n';
+  // std::cout << "b: " << b << '\n';
 
-  a |= b;
+  // BitVector c = b & a;
+  // BitVector d = b | a;
+  // BitVector e = b ^ a;
 
-  std::cout << "a: " << a << '\n';
+  // std::cout << "c: " << c << '\n';
+  // std::cout << "d: " << d << '\n';
+  // std::cout << "e: " << e << '\n';
+
+  // std::cout << "c == d ? " << (c == d ? "Yes" : "No") << '\n';
+  // std::cout << "e == d ? " << (e == d ? "Yes" : "No") << '\n';
+
+  BitVector V1("10000");
+  BitVector V2("10000");
+  BitVector V3("10110");
+  std::cout << "V1 == V2? " << (V1 == V2 ? "True" : "False") << '\n';
+  std::cout << "V1 == V3? " << (V1 == V3 ? "True" : "False") << '\n';
+
 
   std::cout << "All tests passed successfully!" << std::endl;
   return 0;

@@ -315,6 +315,17 @@ class BitVector {
   // Получение компоненты ([ ], см. примечание ниже);
   bool operator[](size_t i) const { return get(i); }
 
+  bool operator==(const BitVector& rhs){
+    if(nbits != rhs.nbits){
+      return false;
+    }
+    // non optimal solution
+    for (size_t i = 0; i < nbits; i++){
+      if (get(i) != rhs.get(i)) return false;
+    }
+    return true;  
+  }
+
   // Bitwise operators: &, |, ^ and their compound forms
   BitVector operator&(const BitVector& rhs) const {
     // if (nbits != rhs.nbits) {
