@@ -20,10 +20,6 @@
 
 */
 
-// shellsort_experiment.cpp
-// Implements Shell sort + three gap sequences, dataset generation, timings.
-// Produces: data_<n>_<lo>_<hi>.txt and timings_shell.csv
-
 #include <algorithm>
 #include <chrono>
 #include <cmath>
