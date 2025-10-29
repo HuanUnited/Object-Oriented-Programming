@@ -112,7 +112,7 @@ void quickSortIterative(vector<int> &a) {
         // stack.push_back(p + 1);
         // stack.push_back(high);
       }
-      if (right_size > 1) {  // (low, p - 1)
+      if (left_size > 1) {  // (low, p - 1)
         stack.emplace_back(low, p - 1);
         // stack.push_back(low);
         // stack.push_back(p - 1);
@@ -178,7 +178,7 @@ int main() {
   ios::sync_with_stdio(false);
   cin.tie(nullptr);
 
-  const vector<size_t> sizes = {10000u, 100000u, 1000000u};
+  const vector<size_t> sizes = {100u, 1000u, 10000u};
   const vector<pair<int, int>> ranges = {
       {-10, 10}, {-1000, 1000}, {-100000, 100000}};
 
