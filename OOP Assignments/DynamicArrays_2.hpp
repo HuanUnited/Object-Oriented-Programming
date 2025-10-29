@@ -85,6 +85,18 @@ public:
     for (size_type i = 0; i < count; ++i)
       m_arr[i] = arr[i];
   }
+  // row formation constructor
+  DynamicArray(size_type rows) : m_arr(nullptr), m_capacity(rows), m_size(rows){
+    if(rows == 0){
+      m_arr = new T[1];
+      m_capacity = 1;
+      m_size = 0;
+    }
+    m_arr = new T[rows];
+    m_capacity = rows;
+    m_size = rows;
+  }
+
   // Copy Constructor
   DynamicArray(const DynamicArray &other)
       : m_arr(new T[other.m_capacity]), m_capacity(other.m_capacity),

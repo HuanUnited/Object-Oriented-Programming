@@ -315,7 +315,7 @@ class BitVector {
   // Получение компоненты ([ ], см. примечание ниже);
   bool operator[](size_t i) const { return get(i); }
 
-  bool operator==(const BitVector& rhs){
+  bool operator==( BitVector& rhs) const{
     if(nbits != rhs.nbits){
       return false;
     }
