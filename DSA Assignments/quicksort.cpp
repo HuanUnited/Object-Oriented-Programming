@@ -16,9 +16,11 @@
 
 */
 
+// quicksort_experiment.cpp
+// Corrected iterative quicksort + experiment harness (timings_quick.csv)
+
 #include <algorithm>
 #include <chrono>
-#include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -28,58 +30,85 @@
 
 using namespace std;
 
-// --- helper integer power (non-conflicting name) ---
-long long ipow(long long base, int exp) {
-  if (exp <= 0) return 1;
-  long long r = 1;
-  while (exp--) r *= base;
-  return r;
-}
-
 // --- helper swap
-template<typename T> void swap_pos(T& t1, T& t2) {
-    T temp = std::move(t1); // or T temp(std::move(t1));
-    t1 = std::move(t2);
-    t2 = std::move(temp);
+template <typename T>
+void swap_pos(T &t1, T &t2) {
+  T temp = std::move(t1);
+  t1 = std::move(t2);
+  t2 = std::move(temp);
 }
 
-int partition(vector<int> &arr, int first, int last) {
-  int pivot = arr[last];
+// Partition with median-of-three pivot (low..high inclusive)
+int partition_median_of_three(vector<int> &arr, int low, int high) {
+  // median-of-three: choose median of arr[low], arr[mid], arr[high]
+  int mid = low + (high - low) / 2;
+  int a = arr[low], b = arr[mid], c = arr[high];
+  int pivotIndex = low;
+  if ((a <= b && b <= c) || (c <= b && b <= a))
+    pivotIndex = mid;
+  else if ((b <= c && c <= a) || (a <= c && c <= b))
+    pivotIndex = high;
+  else
+    pivotIndex = low;
 
-  int i = first;
-  for (int j = first; j < last; j++) {
+  // move chosen pivot to end (high)
+  swap_pos(arr[pivotIndex], arr[high]);
+  int pivot = arr[high];
+
+  int i = low;
+  for (int j = low; j < high; ++j) {
     if (arr[j] <= pivot) {
       swap_pos(arr[i], arr[j]);
-      i++;
+      ++i;
     }
   }
-  swap_pos(arr[i], arr[last]);
-  return (i);
+  swap_pos(arr[i], arr[high]);
+  return i;
 }
 
-// Iterative QuickSort
-void quickSort(vector<int> &a, int first, int last) {
-  int stack[last - first + 1];
-  int top = -1;
-  stack[++top] = first;
-  stack[++top] = last;
-  while (top >= 0) {
-    last = stack[top--];
-    first = stack[top--];
-    int pivot_pos = partition(a, first, last);
+// Iterative quicksort wrapper; sorts entire vector in-place
+void quickSortIterative(vector<int> &a) {
+  int n = static_cast<int>(a.size());
+  if (n <= 1) return;
 
-    // If there are elements on left side of pivot, then
-    // push left side to stack
-    if (pivot_pos - 1 > first) {
-      stack[++top] = first;
-      stack[++top] = pivot_pos - 1;
-    }
+  // stack of intervals: push low, high pairs
+  vector<int> stack;
+  stack.reserve(64);
+  stack.push_back(0);
+  stack.push_back(n - 1);
 
-    // If there are elements on right side of pivot,
-    // then push right side to stack
-    if (pivot_pos + 1 < last) {
-      stack[++top] = pivot_pos + 1;
-      stack[++top] = last;
+  while (!stack.empty()) {
+    int high = stack.back();
+    stack.pop_back();
+    int low = stack.back();
+    stack.pop_back();
+
+    if (low >= high) continue;
+
+    int p = partition_median_of_three(a, low, high);
+
+    // push larger partition first to keep stack shallow
+    int left_size = p - 1 - low;
+    int right_size = high - (p + 1);
+
+    if (left_size > right_size) {
+      if (low < p - 1) {
+        stack.push_back(low);
+        stack.push_back(p - 1);
+      }
+      if (p + 1 < high) {
+        stack.push_back(p + 1);
+        stack.push_back(high);
+      }
+    } else {
+      if (p + 1 < high) {
+        stack.push_back(p + 1);
+        stack.push_back(high);
+      }
+      if (low < p - 1) {
+        stack.push_back(low);
+        stack.push_back(p - 1);
+      }
     }
   }
 }
@@ -91,7 +120,7 @@ bool is_sorted_asc(const vector<int> &a) {
   return true;
 }
 
-// deterministic dataset seed (similar to heapsort example)
+// deterministic dataset seed
 unsigned int datasetSeed(size_t n, int lo, int hi) {
   uint64_t s = 1469598103934665603ull;
   s ^= n;
@@ -124,7 +153,7 @@ void writeVectorToTxt(const string &fname, const vector<int> &v) {
 double timeQuickOnVector(const vector<int> &vec, bool verbose = false) {
   vector<int> copy = vec;  // copy once per trial
   auto start = chrono::steady_clock::now();
-  quickSort(copy,0 , copy.size() - 1);
+  quickSortIterative(copy);
   auto stop = chrono::steady_clock::now();
   if (!is_sorted_asc(copy)) {
     cerr << "ERROR: quicksort produced unsorted result" << "\n";
@@ -171,7 +200,7 @@ int main() {
       cout << "  mean=" << fixed << setprecision(2) << mean << " ms\n";
 
       ofstream csv_append("timings_quick.csv", ios::app);
-      csv_append << n << ',' << lo << ',' << hi << ',' << ',' << fixed
+      csv_append << n << ',' << lo << ',' << hi << ",Quicksort," << fixed
                  << setprecision(3) << runs[0] << ',' << runs[1] << ','
                  << runs[2] << ',' << mean << ",1\n";
       csv_append.close();
