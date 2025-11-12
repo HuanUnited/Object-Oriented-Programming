@@ -45,7 +45,7 @@
 #include "bitvector.hpp"
 
 class BitMatrix {
- private:
+private:
   DynamicArray<BitVector> m_matrix{};
 
   // Helper to check row index
@@ -54,7 +54,7 @@ class BitMatrix {
       throw std::out_of_range("Row index out of bounds");
   }
 
- public:
+public:
   // --- Constructors / Destructor / Assignment ---
 
   // Конструктор по умолчанию (Default Constructor) - DONE (Yellow)
@@ -77,8 +77,9 @@ class BitMatrix {
   }
 
   // Конструктор из матрицы char (Char Matrix Constructor) - DONE (Yellow)
-  explicit BitMatrix(char** bitstr, const size_t rows) {
-    if (!bitstr) throw std::invalid_argument("Null string array");
+  explicit BitMatrix(char **bitstr, const size_t rows) {
+    if (!bitstr)
+      throw std::invalid_argument("Null string array");
     m_matrix.reserve(rows);
     for (size_t i = 0; i < rows; ++i) {
       // BitVector constructor from const char* handles string validation and
@@ -98,9 +99,9 @@ class BitMatrix {
   }
 
   // Конструктор копирования (Copy Constructor) - DONE (Yellow)
-  BitMatrix(const BitMatrix& other)
-      : m_matrix(other.m_matrix) {}  // DynamicArray's copy constructor handles
-                                     // deep copy
+  BitMatrix(const BitMatrix &other)
+      : m_matrix(other.m_matrix) {} // DynamicArray's copy constructor handles
+                                    // deep copy
 
   // Деструктор (Destructor) - DONE (Yellow)
   // DynamicArray and BitVector use unique_ptr/raw pointers and handle memory
@@ -108,17 +109,17 @@ class BitMatrix {
   ~BitMatrix() = default;
 
   // Присваивание (=) (Assignment Operator) - DONE (Yellow)
-  BitMatrix& operator=(const BitMatrix& other) {
+  BitMatrix &operator=(const BitMatrix &other) {
     if (this != &other) {
       m_matrix =
-          other.m_matrix;  // DynamicArray's copy assignment handles deep copy
+          other.m_matrix; // DynamicArray's copy assignment handles deep copy
     }
     return *this;
   }
 
   // Move constructor and assignment (good practice)
-  BitMatrix(BitMatrix&&) noexcept = default;
-  BitMatrix& operator=(BitMatrix&&) noexcept = default;
+  BitMatrix(BitMatrix &&) noexcept = default;
+  BitMatrix &operator=(BitMatrix &&) noexcept = default;
 
   // --- Capacity / Access ---
 
@@ -127,24 +128,25 @@ class BitMatrix {
 
   // Получение числа столбцов (Get number of columns) - DONE (Yellow)
   size_t columns() const noexcept {
-    if (m_matrix.size() == 0) return 0;
+    if (m_matrix.size() == 0)
+      return 0;
     return m_matrix[0].size();
   }
 
   // Обмен содержимого с другой матрицей (swap) - DONE (Yellow)
-  void swap(BitMatrix& other) noexcept {
-    m_matrix.swap(other.m_matrix);  // Use DynamicArray's swap
+  void swap(BitMatrix &other) noexcept {
+    m_matrix.swap(other.m_matrix); // Use DynamicArray's swap
   }
-  friend void swap(BitMatrix& a, BitMatrix& b) noexcept { a.swap(b); }
+  friend void swap(BitMatrix &a, BitMatrix &b) noexcept { a.swap(b); }
 
   // Получение строки ([ ]) (Row access - read/write) - DONE (Yellow)
-  BitVector& operator[](size_t i) {
+  BitVector &operator[](size_t i) {
     check_row_index(i);
     return m_matrix[i];
   }
 
   // Получение строки ([ ]) (Row access - read-only) - DONE (Yellow)
-  const BitVector& operator[](size_t i) const {
+  const BitVector &operator[](size_t i) const {
     check_row_index(i);
     return m_matrix[i];
   }
@@ -189,10 +191,11 @@ class BitMatrix {
   // Конъюнкция всех строк (All-row conjunction - returns BitVector) - DONE
   // (White)
   BitVector conjunction_rows() const {
-    if (m_matrix.size() == 0) return BitVector(0, false);
-    BitVector result = m_matrix[0];  // Start with the first row
+    if (m_matrix.size() == 0)
+      return BitVector(0, false);
+    BitVector result = m_matrix[0]; // Start with the first row
     for (size_t i = 1; i < m_matrix.size(); ++i) {
-      result &= m_matrix[i];  // BitVector operator&= handles the operation
+      result &= m_matrix[i]; // BitVector operator&= handles the operation
     }
     return result;
   }
@@ -200,10 +203,11 @@ class BitMatrix {
   // Дизъюнкция всех строк (All-row disjunction - returns BitVector) - DONE
   // (White)
   BitVector disjunction_rows() const {
-    if (m_matrix.size() == 0) return BitVector(0, false);
-    BitVector result = m_matrix[0];  // Start with the first row
+    if (m_matrix.size() == 0)
+      return BitVector(0, false);
+    BitVector result = m_matrix[0]; // Start with the first row
     for (size_t i = 1; i < m_matrix.size(); ++i) {
-      result |= m_matrix[i];  // BitVector operator|= handles the operation
+      result |= m_matrix[i]; // BitVector operator|= handles the operation
     }
     return result;
   }
@@ -232,55 +236,55 @@ class BitMatrix {
 
   // --- Overloads: Bitwise (Row-wise) ---
 
- private:
+private:
   // Helper for row-wise bitwise operations
-  BitMatrix row_wise_op(const BitMatrix& rhs, char op) const {
+  BitMatrix row_wise_op(const BitMatrix &rhs, char op) const {
     if (m_matrix.size() != rhs.m_matrix.size() || columns() != rhs.columns()) {
       throw std::invalid_argument(
           "Matrices must have the same dimensions for bitwise operation");
     }
-    BitMatrix result(*this);  // Start with a copy
+    BitMatrix result(*this); // Start with a copy
     for (size_t i = 0; i < m_matrix.size(); ++i) {
       switch (op) {
-        case '&':
-          result.m_matrix[i] &= rhs.m_matrix[i];
-          break;
-        case '|':
-          result.m_matrix[i] |= rhs.m_matrix[i];
-          break;
-        case '^':
-          result.m_matrix[i] ^= rhs.m_matrix[i];
-          break;
+      case '&':
+        result.m_matrix[i] &= rhs.m_matrix[i];
+        break;
+      case '|':
+        result.m_matrix[i] |= rhs.m_matrix[i];
+        break;
+      case '^':
+        result.m_matrix[i] ^= rhs.m_matrix[i];
+        break;
       }
     }
     return result;
   }
 
- public:
+public:
   // Построчное побитовое умножение (&) (Row-wise bitwise AND) - DONE (Yellow)
-  BitMatrix operator&(const BitMatrix& rhs) const {
+  BitMatrix operator&(const BitMatrix &rhs) const {
     return row_wise_op(rhs, '&');
   }
-  BitMatrix& operator&=(const BitMatrix& rhs) {
+  BitMatrix &operator&=(const BitMatrix &rhs) {
     *this = row_wise_op(rhs, '&');
     return *this;
   }
 
   // Построчное побитовое сложение (|) (Row-wise bitwise OR) - DONE (Yellow)
-  BitMatrix operator|(const BitMatrix& rhs) const {
+  BitMatrix operator|(const BitMatrix &rhs) const {
     return row_wise_op(rhs, '|');
   }
-  BitMatrix& operator|=(const BitMatrix& rhs) {
+  BitMatrix &operator|=(const BitMatrix &rhs) {
     *this = row_wise_op(rhs, '|');
     return *this;
   }
 
   // Построчное побитовое исключающее ИЛИ (^) (Row-wise bitwise XOR) - DONE
   // (Yellow)
-  BitMatrix operator^(const BitMatrix& rhs) const {
+  BitMatrix operator^(const BitMatrix &rhs) const {
     return row_wise_op(rhs, '^');
   }
-  BitMatrix& operator^=(const BitMatrix& rhs) {
+  BitMatrix &operator^=(const BitMatrix &rhs) {
     *this = row_wise_op(rhs, '^');
     return *this;
   }
@@ -290,35 +294,38 @@ class BitMatrix {
     BitMatrix result(*this);
     for (size_t i = 0; i < m_matrix.size(); ++i) {
       result.m_matrix[i] =
-          ~result.m_matrix[i];  // BitVector operator~ handles the operation
+          ~result.m_matrix[i]; // BitVector operator~ handles the operation
     }
     return result;
   }
 
   // Equality operator (for completeness)
-  bool operator==(BitMatrix& other) const {
-    if (m_matrix.size() != other.m_matrix.size() || columns() != other.columns()) return false;
+  bool operator==(BitMatrix &other) const {
+    if (m_matrix.size() != other.m_matrix.size() ||
+        columns() != other.columns())
+      return false;
     for (size_t i = 0; i < m_matrix.size(); ++i) {
       if (!(m_matrix[i] == other.m_matrix[i]))
-        return false;  // BitVector operator==
+        return false; // BitVector operator==
     }
     return true;
   }
-  bool operator!=(BitMatrix& other) const { return !(*this == other); }
+  bool operator!=(BitMatrix &other) const { return !(*this == other); }
 };
 
 // --- Потоковый ввод/вывод в консоль (Streaming I/O) --- - DONE (Yellow)
 
 // Вывод (Output)
-std::ostream& operator<<(std::ostream& os, const BitMatrix& bm) {
+std::ostream &operator<<(std::ostream &os, const BitMatrix &bm) {
   if (bm.rows() == 0) {
     os << "[]";
     return os;
   }
   os << "[\n";
   for (size_t i = 0; i < bm.rows(); ++i) {
-    os << "  " << bm[i];  // Use BitVector's stream operator
-    if (i < bm.rows() - 1) os << ",\n";
+    os << "  " << bm[i]; // Use BitVector's stream operator
+    if (i < bm.rows() - 1)
+      os << ",\n";
   }
   os << "\n]";
   return os;
@@ -326,12 +333,14 @@ std::ostream& operator<<(std::ostream& os, const BitMatrix& bm) {
 
 // Ввод (Input)
 // Reads rows and columns, then rows number of bit strings
-std::istream& operator>>(std::istream& is, BitMatrix& bm) {
+std::istream &operator>>(std::istream &is, BitMatrix &bm) {
   size_t rows, columns;
   std::cout << "Enter number of rows: ";
-  if (!(is >> rows)) return is;
+  if (!(is >> rows))
+    return is;
   std::cout << "Enter number of columns: ";
-  if (!(is >> columns)) return is;
+  if (!(is >> columns))
+    return is;
 
   // Temporary DynamicArray to build the matrix
   DynamicArray<BitVector> temp_matrix;
@@ -357,7 +366,7 @@ std::istream& operator>>(std::istream& is, BitMatrix& bm) {
     try {
       // BitVector constructor from string handles '0'/'1' validation
       temp_matrix.push_back(BitVector(s.c_str()));
-    } catch (const std::invalid_argument& e) {
+    } catch (const std::invalid_argument &e) {
       std::cerr << "Error in row " << i << ": " << e.what() << "\n";
       is.setstate(std::ios::failbit);
       return is;
@@ -365,44 +374,10 @@ std::istream& operator>>(std::istream& is, BitMatrix& bm) {
   }
 
   // Only assign if all input was successful
-  bm = BitMatrix(rows, columns);  // Create a new matrix with correct dimensions
+  bm = BitMatrix(rows, columns); // Create a new matrix with correct dimensions
   for (size_t i = 0; i < rows; ++i) {
-    bm[i] = temp_matrix[i];  // Copy the valid bit vectors
+    bm[i] = temp_matrix[i]; // Copy the valid bit vectors
   }
 
   return is;
-}
-
-int main() {
-  size_t n{5}, m{10};
-
-  char** matrix = new char*[n];
-
-  for (size_t i = 0; i < n; ++i) {
-    matrix[i] = new char[m];
-    for (size_t j = 0; j < m; ++j) {
-      std::cin >> matrix[i][j];
-    }
-  }
-
-  /*
-  101 000 111 0
-  100 101 011 1
-  011 110 111 1
-  001 010 001 0
-  110 100 100 0
-  */
-
-  BitMatrix bitmatrix(matrix, 5);
-
-  std::cout << bitmatrix << '\n';
-
-  BitVector v = bitmatrix.conjunction_rows();
-  BitVector v2 = bitmatrix.disjunction_rows();
-
-
-  std::cout << v << '\n';
-  std::cout << v2 << '\n';
-
-
 }

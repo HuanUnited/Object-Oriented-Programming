@@ -21,6 +21,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <random>
 #include <string>
 #include <vector>
@@ -34,90 +35,23 @@ template <typename T> void swap_pos(T &t1, T &t2) {
   t2 = std::move(temp);
 }
 
-// Partition with median-of-three pivot (low..high inclusive)
-int partition_median_of_three(vector<int> &arr, int low, int high) {
-  // median-of-three: choose median of arr[low], arr[mid], arr[high]
-  int mid = low + (high - low) / 2; // correct positioning function
-  int a = arr[low], b = arr[mid], c = arr[high];
-  int pivotIndex = low;
+void countingsort(vector<int> &arr) {
 
-  // basically find the median value out of the three.
-  if ((a <= b && b <= c) || (c <= b && b <= a))
-    pivotIndex = mid; // choose b as pivot
-  else if ((b <= c && c <= a) || (a <= c && c <= b))
-    pivotIndex = high; // chooses c as pivot
-  else
-    pivotIndex = low; // chooses a as pivot
+  // Count
+  map<int, int> help;
 
-  // move chosen pivot to end (high)
-  swap_pos(arr[pivotIndex], arr[high]);
-  int pivot = arr[high];
-
-  int i = low;
-  for (int j = low; j < high; ++j) {
-    if (arr[j] <= pivot) {
-      swap_pos(arr[i], arr[j]);
-      ++i;
-    }
+  for (auto x : arr) {
+    help[x]++;
   }
-  swap_pos(arr[i], arr[high]);
-  return i;
-}
 
-// Iterative quicksort wrapper; sorts entire vector in-place
-void quickSortIterative(vector<int> &a) {
-  int n = static_cast<int>(a.size());
-  if (n <= 1)
-    return;
+  arr.clear();
 
-  // vector<int> stack;
-  // stack.reserve(64);
-  // stack.push_back(0);  // first low stack.push_back(n - 1); // first high
-
-  // stack of intervals: push low, high pairs
-  vector<pair<int, int>> stack;
-  stack.emplace_back(0, n - 1);
-
-  while (!stack.empty()) {
-    // int high = stack.back();  // high is the last element in the stack
-    // stack.pop_back();         // pop last element
-    // int low = stack.back();   // low is the last element in the stack
-    // stack.pop_back();         // pop last element
-
-    auto [low, high] = stack.back();
-    stack.pop_back();
-
-    if (low >= high)
-      continue; // bound check
-
-    int p = partition_median_of_three(a, low, high); // find pivot point
-
-    int left_size = p - low;   // number of elements on the left side
-    int right_size = high - p; // number on the right side
-
-    // push larger partition first to keep stack shallow
-    if (left_size > right_size) {
-      if (left_size > 1) { // (low, p - 1)
-        stack.emplace_back(low, p - 1);
-        // stack.push_back(low);
-        // stack.push_back(p - 1);
-      }
-      if (right_size > 1) { // (p + 1, high)
-        stack.emplace_back(p + 1, high);
-        // stack.push_back(p + 1);
-        // stack.push_back(high);
-      }
-    } else {
-      if (right_size > 1) { // (p + 1, high)
-        stack.emplace_back(p + 1, high);
-        // stack.push_back(p + 1);
-        // stack.push_back(high);
-      }
-      if (left_size > 1) { // (low, p - 1)
-        stack.emplace_back(low, p - 1);
-        // stack.push_back(low);
-        // stack.push_back(p - 1);
-      }
+  // Replace
+  for (const auto &pair : help) {
+    int element = pair.first;
+    int count = pair.second;
+    for (int i = 0; i < count; i++) {
+      arr.push_back(element);
     }
   }
 }
@@ -165,10 +99,10 @@ void writeVectorToTxt(const string &fname, const vector<int> &v) {
 double timeQuickOnVector(const vector<int> &vec) {
   vector<int> copy = vec; // copy once per trial
   auto start = chrono::steady_clock::now();
-  quickSortIterative(copy);
+  countingsort(copy);
   auto stop = chrono::steady_clock::now();
   if (!is_sorted_asc(copy)) {
-    cerr << "ERROR: quicksort produced unsorted result" << "\n";
+    cerr << "ERROR: countsort produced unsorted result" << "\n";
     // dump few elements
     for (size_t i = 0; i < min<size_t>(20, copy.size()); ++i) {
       cerr << copy[i] << (i + 1 == min<size_t>(20, copy.size()) ? '\n' : ' ');
@@ -187,7 +121,7 @@ int main() {
       {-10, 10}, {-1000, 1000}, {-100000, 100000}};
 
   // CSV header
-  ofstream csv("timings_quick.csv", ios::out);
+  ofstream csv("timings_count.csv", ios::out);
   csv << "size,lo,hi,algorithm,run1_ms,run2_ms,run3_ms,mean_ms,sorted\n";
   csv.close();
 
@@ -211,15 +145,15 @@ int main() {
       double mean = (runs[0] + runs[1] + runs[2]) / 3.0;
       cout << "  mean=" << fixed << setprecision(2) << mean << " ms\n";
 
-      ofstream csv_append("timings_quick.csv", ios::app);
-      csv_append << n << ';' << lo << ';' << hi << ";Quicksort;" << fixed
+      ofstream csv_append("timings_count.csv", ios::app);
+      csv_append << n << ',' << lo << ',' << hi << ",Count," << fixed
                  << setprecision(3) << runs[0] << ',' << runs[1] << ','
                  << runs[2] << ',' << mean << ",1\n";
       csv_append.close();
     }
   }
 
-  cout << "All experiments complete. See timings_quick.csv and data_*.txt "
+  cout << "All experiments complete. See timings_count.csv and data_*.txt "
           "files.\n";
   return 0;
 }
