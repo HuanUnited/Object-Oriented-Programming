@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "bitmatrix_o.hpp"
+#include "bitmatrix_d.cpp"
 
 // helper: build char** from vector<string> (rows)
 static char **make_char_matrix(const std::vector<std::string> &rows) {
