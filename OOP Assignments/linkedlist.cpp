@@ -124,8 +124,12 @@ public:
   List<T> operator+(List &other);
   List<T> operator+=(List &other);
 
+  // helper methods:
+
 private:
   class _Node;
+
+  _Node *node_at(size_t const index) const;
 
   _Node *_head;
   _Node *_tail;
@@ -151,7 +155,6 @@ public:
   void *_setNext(_Node const *other) { _posnext = other; };
   void *_setPrev(_Node const *other) { _posprev = other; };
 
-  _Node *node_at(size_t const index) const;
   void unlink_and_delete(_Node *n);
 };
 

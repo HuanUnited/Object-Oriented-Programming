@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "bitmatrix_d.cpp"
+#include "bitmatrix_o.hpp"
 
 // helper: build char** from vector<string> (rows)
 static char **make_char_matrix(const std::vector<std::string> &rows) {
@@ -60,14 +61,28 @@ int main() {
     m.set(0, 0, true);
     m.set(1, 2, true);
     m.set(2, 4, true);
-    check(m.row_weight(0) == 1, "row 0 weight == 1");
-    check(m.row_weight(1) == 1, "row 1 weight == 1");
-    check(m.row_weight(2) == 1, "row 2 weight == 1");
+
+    BitVector a(5, false);
+    a.set(0, true);
+    std::cout << a << std::endl;
+
+    BitVector b(5, false);
+    b.set(2, true);
+    std::cout << b << std::endl;
+
+    BitVector c(5, false);
+    c.set(4, true);
+    std::cout << c << std::endl;
+
+    check(m[0] == a, "row 0 correct");
+    check(m[1] == b, "row 1 correct");
+    check(m[2] == c, "row 2 correct");
     check(m.weight() == 3, "matrix total weight == 3");
 
+    BitVector d(5, false);
     // flip bit
     m.flip(0, 0);
-    check(m.row_weight(0) == 0, "flip cleared bit => row 0 weight == 0");
+    check(m[0] == d, "flip cleared bit => row 0 weight == 0");
   }
 
   // ---------- 3) Constructor from char** and uniform columns check ----------
@@ -78,10 +93,18 @@ int main() {
     check(fromC.rows() == 3, "char** ctor rows == 3");
     check(fromC.columns() == 5, "char** ctor cols == 5");
     check(fromC[0].size() == 5, "row vector size exposed correctly");
-    // check content via weight
-    check(fromC.row_weight(0) == 3, "row 0 weight == 3 (10101)");
-    check(fromC.row_weight(1) == 2, "row 1 weight == 2 (00011)");
-    check(fromC.row_weight(2) == 5, "row 2 weight == 5 (11111)");
+
+    char r1[] = "10101";
+    char r2[] = "00011";
+    char r3[] = "11111";
+
+    BitVector b1(r1);
+    BitVector b2(r2);
+    BitVector b3(r3);
+
+    check(fromC[0] == b1, "row 0  (10101)");
+    check(fromC[1] == b2, "row 1  (00011)");
+    check(fromC[2] == b3, "row 2  (11111)");
     free_char_matrix(cm, rows.size());
   }
 
@@ -137,17 +160,33 @@ int main() {
     BitVector disj = bm.disjunction_rows(); // bitwise OR of rows
     // conjunction: 1100 & 1001 & 1101 = 1000 (weight 1)
     // disjunction: OR = 1101 (weight 3)
-    check(conj.weight() == 1, "conjunction weight == 1");
-    check(disj.weight() == 3, "disjunction weight == 3");
+
+    char r1[] = "1000";
+    char r2[] = "1101";
+
+    BitVector b1(r1);
+    BitVector b2(r2);
+
+    check(conj == b1, "conjunction weight true");
+    check(disj == b2, "disjunction weight true");
   }
 
   // ---------- 8) flip_range and set_range ----------
   {
     BitMatrix r(1, 8, false);
     r.set_range(0, 2, 3, true); // set bits 2,3,4
-    check(r.row_weight(0) == 3, "set_range set 3 bits");
+    // -> bv:001110000
+
+    BitVector b1(8, false);
+    b1.setRange(2, 3, true);
+
+    check(r[0] == b1, "set_range set 3 bits");
     r.flip_range(0, 3, 2); // flip bits 3 and 4 (3->0,4->0)
-    check(r.row_weight(0) == 1, "flip_range flipped 2 bits -> weight 1");
+    // -> bv:001000000
+    b1.flip(3);
+    b1.flip(4);
+
+    check(r[0] == b1, "flip_range flipped 2 bits");
   }
 
   // ---------- 9) bitwise row-wise operators (&,|,^ and their assign forms)
@@ -166,11 +205,18 @@ int main() {
     BitMatrix ored = A | B;
     BitMatrix xored = A ^ B;
 
+    char r1[] = "1000";
+    char r2[] = "1011";
+    char r3[] = "0011";
+    BitVector b1(r1);
+    BitVector b2(r2);
+    BitVector b3(r3);
+
     // compute expected weights per row:
     // row0: A=1010 B=1001 => AND=1000 (1), OR=1011 (3), XOR=0011 (2)
-    check(anded.row_weight(0) == 1, "A&B row0 weight == 1");
-    check(ored.row_weight(0) == 3, "A|B row0 weight == 3");
-    check(xored.row_weight(0) == 2, "A^B row0 weight == 2");
+    check(anded[0] == b1, "A&B row0 true");
+    check(ored[0] == b2, "A|B row0 true");
+    check(xored[0] == b3, "A^B row0 true");
 
     // test compound assignment forms don't throw and produce expected values:
     BitMatrix C = A;
@@ -188,12 +234,15 @@ int main() {
     // test bitwise NOT (~)
     BitMatrix notA = ~A;
     // ~A row0 of width 4: A=1010 => ~A = 0101 -> weight 2
-    check(notA.row_weight(0) == 2, "~A row0 weight == 2");
+    char r4[] = "0101";
+    BitVector b4(r4);
+    check(notA[0] == b4, "~A row0 true");
   }
 
   // ---------- 10) operator[] read/write ----------
   {
     BitMatrix m(2, 4, false);
+    // ну это уже проверка булевой вектор
     m[0].set(1, true);
     m[1].set(2, true);
     check(m.row_weight(0) == 1 && m.row_weight(1) == 1,

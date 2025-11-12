@@ -432,13 +432,13 @@ public:
   }
 };
 
-std::ostream &operator<<(std::ostream &os, const BitVector &bv) {
+inline std::ostream &operator<<(std::ostream &os, const BitVector &bv) {
   for (size_t i = 0; i < bv.size(); ++i)
     os << (bv[i] ? '1' : '0');
   return os;
 }
 
-std::istream &operator>>(std::istream &is, BitVector &bv) {
+inline std::istream &operator>>(std::istream &is, BitVector &bv) {
   std::string s;
   if (!(is >> s))
     return is;
