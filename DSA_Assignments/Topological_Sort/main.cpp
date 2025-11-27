@@ -144,11 +144,14 @@ void topSortLinkedList(std::vector<std::pair<int, int>> &_graph, int nodes,
   std::queue<int> zero_in_degree;
 
   // Add all vertices with in-degree 0
+  // in-degree is the number of edges that points to a vertex
   for (int i = 0; i < nodes; i++) {
     if (in_degree[i] == 0) {
       zero_in_degree.push(i);
     }
   }
+
+  // zero in degree is a list of vertexes that have an in-degree of zero.
 
   // Process vertices
   while (!zero_in_degree.empty()) {
@@ -175,92 +178,23 @@ void topSortLinkedList(std::vector<std::pair<int, int>> &_graph, int nodes,
   }
 }
 
-/**
- * Alternative: DFS-based Topological Sort using Matrix
- * Uses depth-first search and a stack
- * Vertices are added to result in reverse order of completion
- */
-void topSortMatrixDFS(BitMatrix &matrix, vector<int> &sorted) {
-  if (matrix.columns() != matrix.rows()) {
-    throw std::invalid_argument("Matrix must be square");
-  }
-
-  int n = matrix.rows();
-  vector<bool> visited(n, false);
-  vector<bool> rec_stack(n, false); // For cycle detection
-  vector<int> finish_order;
-
-  // DFS helper function
-  std::function<void(int)> dfs = [&](int u) {
-    visited[u] = true;
-    rec_stack[u] = true;
-
-    // Visit all neighbors
-    for (int v = 0; v < n; v++) {
-      if (matrix[u][v]) { // Edge from u to v
-        if (rec_stack[v]) {
-          throw std::runtime_error(
-              "Graph contains a cycle - topological sort impossible");
-        }
-        if (!visited[v]) {
-          dfs(v);
-        }
-      }
-    }
-
-    rec_stack[u] = false;
-    finish_order.push_back(u);
-  };
-
-  // Run DFS from each unvisited vertex
-  for (int i = 0; i < n; i++) {
-    if (!visited[i]) {
-      dfs(i);
-    }
-  }
-
-  // Reverse the finish order to get topological sort
-  sorted.assign(finish_order.rbegin(), finish_order.rend());
-}
-
-/**
- * Alternative: DFS-based Topological Sort using Linked List
- */
-void topSortLinkedListDFS(std::vector<std::pair<int, int>> &_graph, int nodes,
-                          vector<int> &sorted) {
+// Print List:
+void printList(std::vector<std::pair<int, int>> &_graph, int nodes) {
   List<List<int>> adj_list = to_adjacency_list(_graph, nodes);
 
-  vector<bool> visited(nodes, false);
-  vector<bool> rec_stack(nodes, false);
-  vector<int> finish_order;
-
-  std::function<void(int)> dfs = [&](int u) {
-    visited[u] = true;
-    rec_stack[u] = true;
-
-    List<int> &neighbors = adj_list[u];
-    for (auto it = neighbors.begin(); it != neighbors.end(); ++it) {
-      int v = *it;
-      if (rec_stack[v]) {
-        throw std::runtime_error(
-            "Graph contains a cycle - topological sort impossible");
-      }
-      if (!visited[v]) {
-        dfs(v);
-      }
-    }
-
-    rec_stack[u] = false;
-    finish_order.push_back(u);
-  };
+  if (adj_list.empty())
+    return;
 
   for (int i = 0; i < nodes; i++) {
-    if (!visited[i]) {
-      dfs(i);
+    auto thing = adj_list[i];
+
+    if (thing.empty())
+      continue;
+
+    for (auto val : thing) {
+      printf("%d %d\n", i, val);
     }
   }
-
-  sorted.assign(finish_order.rbegin(), finish_order.rend());
 }
 
 // Utility: Print graph edges
@@ -313,6 +247,10 @@ int main() {
               << graph.size() << " edges\n";
     print_graph(graph);
 
+    std::cout << "=== Print List Test ===\n";
+    std::cout << "=== Ordered Graph List === \n";
+    printList(graph, nodes);
+
     // Method 1: Matrix-based (Kahn's Algorithm)
     std::cout << "\n--- Method 1: Matrix-based Topological Sort (Kahn) ---\n";
     BitMatrix matrix = to_matrix(graph, nodes);
@@ -337,34 +275,13 @@ int main() {
     std::cout << "Verification: " << (valid_list ? "✓ VALID" : "✗ INVALID")
               << "\n";
 
-    // Method 3: Matrix-based DFS
-    std::cout << "\n--- Method 3: Matrix-based Topological Sort (DFS) ---\n";
-    vector<int> sorted_matrix_dfs;
-    topSortMatrixDFS(matrix, sorted_matrix_dfs);
-    print_sorted(sorted_matrix_dfs);
-
-    bool valid_matrix_dfs = verify_topological_sort(graph, sorted_matrix_dfs);
-    std::cout << "Verification: "
-              << (valid_matrix_dfs ? "✓ VALID" : "✗ INVALID") << "\n";
-
-    // Method 4: Linked List-based DFS
-    std::cout
-        << "\n--- Method 4: Linked List-based Topological Sort (DFS) ---\n";
-    vector<int> sorted_list_dfs;
-    topSortLinkedListDFS(graph, nodes, sorted_list_dfs);
-    print_sorted(sorted_list_dfs);
-
-    bool valid_list_dfs = verify_topological_sort(graph, sorted_list_dfs);
-    std::cout << "Verification: " << (valid_list_dfs ? "✓ VALID" : "✗ INVALID")
-              << "\n";
-
     // Test with manual graph
     std::cout << "\n=== Testing with Manual Graph ===\n";
     std::vector<std::pair<int, int>> manual_graph = {
         {0, 1}, {0, 2}, {1, 3}, {2, 3}, {2, 4}, {3, 5}, {4, 5}};
     int manual_nodes = 6;
 
-    std::cout << "Manual graph (0->1, 0->2, 1->3, 2->3, 2->4, 3->5, 4->5):\n";
+    printList(manual_graph, manual_nodes);
     print_graph(manual_graph);
 
     BitMatrix manual_matrix = to_matrix(manual_graph, manual_nodes);

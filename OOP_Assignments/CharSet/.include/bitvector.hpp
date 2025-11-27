@@ -93,7 +93,11 @@ public:
   BitVector operator>>(const size_t off) const;
   BitVector &operator>>=(const size_t off);
 
-private:
+  // For Charset Class:
+  virtual void print(std::ostream &os) const;
+  virtual void read(std::istream &is);
+
+protected:
   std::unique_ptr<byte_t[]> data;
   size_t nbits = 0;
 };

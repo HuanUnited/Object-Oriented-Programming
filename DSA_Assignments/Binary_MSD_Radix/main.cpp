@@ -19,7 +19,6 @@
 В репозитории отчёт оформить в виде релиза, вместо обычного добавления.
 */
 
-#include <fmt/format.h>
 #include <tuple>
 #include <vector>
 
@@ -32,7 +31,7 @@
 #include <string>
 
 #include ".include/bitmatrix.hpp"
-#include "bitvector.hpp"
+#include ".include/bitvector.hpp"
 
 using std::vector, std::cout;
 
@@ -51,6 +50,7 @@ int _partition(BitMatrix &matrix, int low, int high, int col) {
     // advance i until we find a 1 (out-of-place for left)
     while (i <= j && !matrix[i][col])
       ++i; // skip zeros; zeros belong left
+
     // move j left until we find a 0 (out-of-place for right)
     while (i <= j && matrix[j][col])
       --j; // skip ones; ones belong right
