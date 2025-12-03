@@ -300,27 +300,6 @@ BitVector &BitVector::operator>>=(const size_t off) {
   return *this;
 }
 
-// For Charset Class:
-void BitVector::print(std::ostream &os) const {
-  for (size_t i = 0; i < size(); ++i)
-    os << (data[i] ? '1' : '0');
-};
-
-void BitVector::read(std::istream &is) {
-  std::string s;
-  if (!(is >> s))
-
-    for (char c : s)
-      if (c != '0' && c != '1') {
-        is.setstate(std::ios::failbit);
-      }
-
-  (*this) = BitVector(s.size());
-  for (size_t i = 0; i < s.size(); ++i)
-    if (s[i] == '1')
-      (*this).set(i, true);
-};
-
 // -- stream operators --
 std::ostream &operator<<(std::ostream &os, const BitVector &bv) {
   for (size_t i = 0; i < bv.size(); ++i)

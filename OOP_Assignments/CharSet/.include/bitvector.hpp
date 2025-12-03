@@ -1,5 +1,7 @@
 #pragma once
 
+// Modified for polymorphism
+
 #include <cstddef>
 #include <cstdint>
 #include <iosfwd>
@@ -24,7 +26,7 @@ public:
   BitVector &operator=(const BitVector &other);
   BitVector(BitVector &&) noexcept = default;
   BitVector &operator=(BitVector &&) noexcept = default;
-  ~BitVector() = default;
+  virtual ~BitVector() = default; // Virtual destructor for polymorphism
 
   // position: byte and offset:
   pair coord(size_t i) const;
@@ -40,7 +42,7 @@ public:
   friend void swap(BitVector &a, BitVector &b) noexcept;
 
   // length
-  size_t size() const noexcept;
+  virtual size_t size() const noexcept; // Virtual for potential override
 
   // value
   int value() const;
@@ -58,14 +60,14 @@ public:
     BoolRef &flip();
   };
 
-  // accessors & mutators
-  bool get(size_t i) const;
-  void set(size_t i, bool value);
-  void flip(size_t i);
-  void flipAll();
-  void setRange(size_t i, size_t k, bool value);
-  void setAll(bool value);
-  size_t weight() const;
+  // accessors & mutators - made virtual for polymorphism
+  virtual bool get(size_t i) const;
+  virtual void set(size_t i, bool value);
+  virtual void flip(size_t i);
+  virtual void flipAll();
+  virtual void setRange(size_t i, size_t k, bool value);
+  virtual void setAll(bool value);
+  virtual size_t weight() const;
 
   // operator[]
   BoolRef operator[](size_t i);
@@ -93,11 +95,8 @@ public:
   BitVector operator>>(const size_t off) const;
   BitVector &operator>>=(const size_t off);
 
-  // For Charset Class:
-  virtual void print(std::ostream &os) const;
-  virtual void read(std::istream &is);
-
 protected:
+  // Changed from private to protected for inheritance
   std::unique_ptr<byte_t[]> data;
   size_t nbits = 0;
 };

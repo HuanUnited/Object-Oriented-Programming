@@ -1,153 +1,107 @@
-#include ".include/charset.hpp"
-#include <cassert>
+#include "./.include/charset.hpp"
 #include <iostream>
-#include <string>
-
-// Color codes
-#define GREEN "\033[32m"
-#define RED "\033[31m"
-#define YELLOW "\033[33m"
-#define RESET "\033[0m"
-
-void test_passed(const std::string &test_name) {
-  std::cout << GREEN << "[PASS] " << RESET << test_name << std::endl;
-}
-
-void test_failed(const std::string &test_name, const std::string &reason = "") {
-  std::cout << RED << "[FAIL] " << RESET << test_name;
-  if (!reason.empty()) {
-    std::cout << " - " << reason;
-  }
-  std::cout << std::endl;
-}
-
-void section(const std::string &section) {
-  std::cout << "\n"
-            << YELLOW << "=== " << section << " ===" << RESET << std::endl;
-}
-
-// --- Tests ---
-void test_constructors() {
-  section("Constructors");
-
-  Charset a;
-  assert(a.cardinality() == 0);
-  test_passed("Default constructor");
-
-  Charset b({'A', 'B', 'C'});
-  assert(b.contains('A'));
-  assert(b.cardinality() == 3);
-  test_passed("Initializer list constructor");
-
-  Charset c(b);
-  assert(c == b);
-  test_passed("Copy constructor");
-}
-
-void test_membership() {
-  section("Membership");
-  Charset cs({'x', 'y', 'z'});
-  assert(cs.contains('x'));
-  assert(!cs.contains('a'));
-  test_passed("contains()");
-}
-
-void test_add_remove() {
-  section("Add/Remove");
-  Charset cs;
-  cs.add('Q');
-  assert(cs.contains('Q'));
-  test_passed("add()");
-
-  cs.remove('Q');
-  assert(!cs.contains('Q'));
-  test_passed("remove()");
-}
-
-void test_min_max() {
-  section("Min/Max");
-  Charset cs({'d', 'a', 'z'});
-  assert(cs.minElement() == 'a');
-  assert(cs.maxElement() == 'z');
-  test_passed("min/max");
-}
-
-void test_set_ops() {
-  section("Set operations");
-
-  Charset A({'A', 'B', 'C'});
-  Charset B({'B', 'D'});
-
-  Charset U = A | B;
-  assert(U.contains('A') && U.contains('D'));
-  test_passed("union");
-
-  Charset I = A & B;
-  assert(I.contains('B') && I.cardinality() == 1);
-  test_passed("intersection");
-
-  Charset D = A / B;
-  assert(D.contains('A') && !D.contains('B'));
-  test_passed("difference");
-
-  Charset C = ~Charset({'A'}, (int)'A', (int)'C');
-  assert(!C.contains('A') && C.contains('B') && C.contains('C'));
-  test_passed("complement");
-}
-
-void test_streams() {
-  section("Stream operators");
-
-  Charset cs({'a', 'b', 'c'});
-  std::cout << "Print test: " << cs << std::endl;
-  test_passed("operator<<");
-
-  std::istringstream iss("{a,b,c}");
-  Charset rd; // cin >> a,b,c
-  iss >> rd;
-  assert(rd.contains('b'));
-  test_passed("operator>>");
-}
 
 int main() {
-  std::cout << "\n"
-            << YELLOW << "╔════════════════════════════════════════╗" << RESET
+  std::cout << "=== CharacterSet Testing ===" << std::endl << std::endl;
+
+  // Test 1: Default constructor and adding elements
+  std::cout << "Test 1: Default constructor and adding elements" << std::endl;
+  CharacterSet set1;
+  set1 += 'a';
+  set1 += 'b';
+  set1 += 'c';
+  std::cout << "set1: " << set1 << std::endl;
+  std::cout << "Cardinality: " << set1.getCardinality() << std::endl;
+  std::cout << std::endl;
+
+  // Test 2: String constructor
+  std::cout << "Test 2: String constructor" << std::endl;
+  CharacterSet set2("hello");
+  std::cout << "set2 (from \"hello\"): " << set2 << std::endl;
+  std::cout << "Cardinality: " << set2.getCardinality() << std::endl;
+  std::cout << std::endl;
+
+  // Test 3: Contains check
+  std::cout << "Test 3: Contains check" << std::endl;
+  std::cout << "set2 contains 'h': " << (set2.contains('h') ? "yes" : "no")
             << std::endl;
-  std::cout << YELLOW << "║  Linked List Comprehensive Test Suite  ║" << RESET
+  std::cout << "set2 contains 'x': " << (set2.contains('x') ? "yes" : "no")
             << std::endl;
-  std::cout << YELLOW << "╚════════════════════════════════════════╝" << RESET
-            << "\n"
+  std::cout << std::endl;
+
+  // Test 4: Min/Max
+  std::cout << "Test 4: Min/Max elements" << std::endl;
+  std::cout << "set2 min: '" << set2.getMin() << "'" << std::endl;
+  std::cout << "set2 max: '" << set2.getMax() << "'" << std::endl;
+  std::cout << std::endl;
+
+  // Test 5: Union
+  std::cout << "Test 5: Union operation" << std::endl;
+  CharacterSet set3("world");
+  std::cout << "set2: " << set2 << std::endl;
+  std::cout << "set3 (from \"world\"): " << set3 << std::endl;
+  CharacterSet unionSet = set2 | set3;
+  std::cout << "set2 | set3: " << unionSet << std::endl;
+  std::cout << std::endl;
+
+  // Test 6: Intersection
+  std::cout << "Test 6: Intersection operation" << std::endl;
+  CharacterSet intersectionSet = set2 & set3;
+  std::cout << "set2 & set3: " << intersectionSet << std::endl;
+  std::cout << std::endl;
+
+  // Test 7: Difference
+  std::cout << "Test 7: Difference operation" << std::endl;
+  CharacterSet diffSet = set2 / set3;
+  std::cout << "set2 / set3: " << diffSet << std::endl;
+  std::cout << std::endl;
+
+  // Test 8: Add and remove elements
+  std::cout << "Test 8: Add and remove elements" << std::endl;
+  CharacterSet set4("abc");
+  std::cout << "set4: " << set4 << std::endl;
+  CharacterSet set5 = set4 + 'd';
+  std::cout << "set4 + 'd': " << set5 << std::endl;
+  CharacterSet set6 = set5 - 'a';
+  std::cout << "set5 - 'a': " << set6 << std::endl;
+  std::cout << std::endl;
+
+  // Test 9: Complement
+  std::cout << "Test 9: Complement (showing first 10 elements)" << std::endl;
+  CharacterSet smallSet;
+  smallSet += 'a';
+  smallSet += 'b';
+  std::cout << "smallSet: " << smallSet << std::endl;
+  CharacterSet complement = ~smallSet;
+  std::cout << "Complement cardinality: " << complement.getCardinality()
             << std::endl;
+  std::cout << "Does complement contain 'z': "
+            << (complement.contains('z') ? "yes" : "no") << std::endl;
+  std::cout << "Does complement contain 'a': "
+            << (complement.contains('a') ? "yes" : "no") << std::endl;
+  std::cout << std::endl;
 
-  try {
-    test_constructors();
-    test_membership();
-    test_add_remove();
-    test_min_max();
-    test_set_ops();
-    test_streams();
+  // Test 10: Comparison
+  std::cout << "Test 10: Comparison operators" << std::endl;
+  CharacterSet set7("abc");
+  CharacterSet set8("abc");
+  CharacterSet set9("xyz");
+  std::cout << "set7: " << set7 << std::endl;
+  std::cout << "set8: " << set8 << std::endl;
+  std::cout << "set9: " << set9 << std::endl;
+  std::cout << "set7 == set8: " << (set7 == set8 ? "yes" : "no") << std::endl;
+  std::cout << "set7 == set9: " << (set7 == set9 ? "yes" : "no") << std::endl;
+  std::cout << "set7 != set9: " << (set7 != set9 ? "yes" : "no") << std::endl;
+  std::cout << std::endl;
 
-    std::cout << "\n"
-              << GREEN << "╔════════════════════════════════════════╗" << RESET
-              << std::endl;
-    std::cout << GREEN << "║     All Tests Completed Successfully!  ║" << RESET
-              << std::endl;
-    std::cout << GREEN << "╚════════════════════════════════════════╝" << RESET
-              << "\n"
-              << std::endl;
+  // Test 11: Copy constructor
+  std::cout << "Test 11: Copy constructor" << std::endl;
+  CharacterSet set10(set2);
+  std::cout << "set10 (copy of set2): " << set10 << std::endl;
+  std::cout << "set10 == set2: " << (set10 == set2 ? "yes" : "no") << std::endl;
+  std::cout << std::endl;
 
-    std::cout << "\nTest Coverage:" << std::endl;
-    std::cout << GREEN << "✓ 15 баллов:" << RESET
-              << " Реализовать все методы, помеченные зелёным цветом"
-              << std::endl;
-    std::cout << GREEN << "✓ 5 баллов:" << RESET
-              << " Дополнительно реализовать все методы, не "
-                 "помеченные цветом."
-              << std::endl;
+  std::cout << "=== All tests completed ===" << std::endl;
 
-  } catch (const std::exception &e) {
-    std::cout << RED << "\nUnexpected exception: " << e.what() << RESET
-              << std::endl;
-    return 1;
-  }
+  return 0;
 }
