@@ -68,41 +68,29 @@ void topSortMatrix(BitMatrix &matrix, vector<int> &sorted) {
   }
 
   int n = matrix.rows();
-  vector<int> in_degree(n, 0);
+  vector<int> unsorted;
 
-  // Calculate in-degree for each vertex
-  // in_degree[j] = number of edges pointing to vertex j
-  for (int j = 0; j < n; j++) {
-    for (int i = 0; i < n; i++) {
-      if (matrix[i][j]) { // Edge from i to j
-        in_degree[j]++;
-      }
-    }
-  }
-
-  // Queue for vertices with in-degree 0
-  std::queue<int> zero_in_degree;
-
-  // Add all vertices with in-degree 0
   for (int i = 0; i < n; i++) {
-    if (in_degree[i] == 0) {
-      zero_in_degree.push(i);
-    }
+    unsorted.push_back(i);
   }
+  while (!unsorted.empty()) {
 
-  // Process vertices
-  while (!zero_in_degree.empty()) {
-    int u = zero_in_degree.front();
-    zero_in_degree.pop();
-    sorted.push_back(u);
+    for (int row = 0; row < n; row++) {
+      bool hasTrue = false;
 
-    // For each vertex v that u points to
-    for (int v = 0; v < n; v++) {
-      if (matrix[u][v]) { // Edge from u to v
-        in_degree[v]--;
-        if (in_degree[v] == 0) {
-          zero_in_degree.push(v);
+      for (int column = 0; column < n; column++) {
+        if (matrix[row][column]) {
+          hasTrue = true;
+          break;
         }
+      }
+
+      if (!hasTrue) {
+        for (int column = 0; i < n; i++) {
+          matrix[row][column] = false;
+        }
+        sorted.push_back(row);
+        unsorted.erase(unsorted.begin() + row);
       }
     }
   }

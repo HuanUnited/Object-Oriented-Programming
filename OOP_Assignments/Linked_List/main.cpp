@@ -1,4 +1,4 @@
-#include "linked_list.hpp"
+#include "./.include/linked_list.hpp"
 #include <cassert>
 #include <iostream>
 #include <string>
@@ -467,6 +467,330 @@ void test_with_strings() {
 
   std::cout << "String list: " << list << std::endl;
   test_passed("List with strings");
+
+  // Test string operations
+  list.push_front("Start");
+  assert(list[0] == "Start");
+  test_passed("String push_front");
+
+  auto it = list.find("World");
+  assert(it != list.end());
+  assert(*it == "World");
+  test_passed("String find");
+
+  // Test min/max with strings (lexicographic order)
+  List<std::string> list2;
+  list2.push_back("zebra");
+  list2.push_back("apple");
+  list2.push_back("mango");
+  assert(list2.min() == "apple");
+  assert(list2.max() == "zebra");
+  test_passed("String min/max");
+
+  // Test sort with strings
+  list2.sort();
+  assert(list2[0] == "apple");
+  assert(list2[1] == "mango");
+  assert(list2[2] == "zebra");
+  test_passed("String sort");
+}
+
+// Test 18b: Char type
+void test_with_chars() {
+  section_header("Testing with Char Type");
+
+  // Basic operations
+  List<char> list;
+  list.push_back('H');
+  list.push_back('e');
+  list.push_back('l');
+  list.push_back('l');
+  list.push_back('o');
+
+  assert(list.size() == 5);
+  assert(list[0] == 'H');
+  assert(list[4] == 'o');
+
+  std::cout << "Char list: " << list << std::endl;
+  test_passed("List with chars - basic operations");
+
+  // Array constructor with chars
+  char arr[] = {'A', 'B', 'C', 'D', 'E'};
+  List<char> list2(arr, 5);
+  assert(list2.size() == 5);
+  assert(list2[0] == 'A');
+  assert(list2[4] == 'E');
+  test_passed("Char array constructor");
+
+  // Push operations
+  list2.push_front('Z');
+  assert(list2[0] == 'Z');
+  list2.push_back('F');
+  assert(list2[6] == 'F');
+  test_passed("Char push operations");
+
+  // Pop operations
+  list2.pop_front();
+  assert(list2[0] == 'A');
+  list2.pop_back();
+  assert(list2.size() == 5);
+  test_passed("Char pop operations");
+
+  // Find operation
+  auto it = list2.find('C');
+  assert(it != list2.end());
+  assert(*it == 'C');
+  test_passed("Char find");
+
+  // Min/Max
+  assert(list2.min() == 'A');
+  assert(list2.max() == 'E');
+  test_passed("Char min/max");
+
+  // Sort
+  char unsorted[] = {'Z', 'A', 'M', 'B', 'Y'};
+  List<char> list3(unsorted, 5);
+  list3.sort();
+  assert(list3[0] == 'A');
+  assert(list3[1] == 'B');
+  assert(list3[2] == 'M');
+  assert(list3[3] == 'Y');
+  assert(list3[4] == 'Z');
+  test_passed("Char sort");
+
+  // Iterator operations
+  List<char> list4;
+  list4.push_back('X');
+  list4.push_back('Y');
+  list4.push_back('Z');
+
+  std::string result = "";
+  for (auto c : list4) {
+    result += c;
+  }
+  assert(result == "XYZ");
+  test_passed("Char iterator operations");
+
+  // Comparison
+  char arr1[] = {'a', 'b', 'c'};
+  char arr2[] = {'a', 'b', 'c'};
+  char arr3[] = {'a', 'b', 'd'};
+  List<char> clist1(arr1, 3);
+  List<char> clist2(arr2, 3);
+  List<char> clist3(arr3, 3);
+
+  assert(clist1 == clist2);
+  assert(clist1 != clist3);
+  test_passed("Char comparison operators");
+
+  // Concatenation
+  List<char> clist4 = clist1 + clist3;
+  assert(clist4.size() == 6);
+  assert(clist4[0] == 'a');
+  assert(clist4[5] == 'd');
+  test_passed("Char concatenation");
+
+  // Copy constructor
+  List<char> list5(list2);
+  assert(list5.size() == list2.size());
+  assert(list5 == list2);
+  test_passed("Char copy constructor");
+
+  // Assignment operator
+  List<char> list6;
+  list6 = list2;
+  assert(list6 == list2);
+  test_passed("Char assignment operator");
+}
+
+// Test 18c: Float type
+void test_with_floats() {
+  section_header("Testing with Float Type");
+
+  // Basic operations
+  List<float> list;
+  list.push_back(3.14f);
+  list.push_back(2.71f);
+  list.push_back(1.41f);
+
+  assert(list.size() == 3);
+  assert(list[0] == 3.14f);
+  assert(list[1] == 2.71f);
+  assert(list[2] == 1.41f);
+
+  std::cout << "Float list: " << list << std::endl;
+  test_passed("List with floats - basic operations");
+
+  // Array constructor with floats
+  float arr[] = {1.1f, 2.2f, 3.3f, 4.4f, 5.5f};
+  List<float> list2(arr, 5);
+  assert(list2.size() == 5);
+  assert(list2[0] == 1.1f);
+  assert(list2[4] == 5.5f);
+  test_passed("Float array constructor");
+
+  // Push operations
+  list2.push_front(0.5f);
+  assert(list2[0] == 0.5f);
+  list2.push_back(6.6f);
+  assert(list2[6] == 6.6f);
+  test_passed("Float push operations");
+
+  // Pop operations
+  list2.pop_front();
+  assert(list2[0] == 1.1f);
+  list2.pop_back();
+  assert(list2.size() == 5);
+  test_passed("Float pop operations");
+
+  // Push at index
+  list2.push_at(2, 9.9f);
+  assert(list2[2] == 9.9f);
+  assert(list2.size() == 6);
+  test_passed("Float push_at");
+
+  // Pop at index
+  list2.pop_at(2);
+  assert(list2[2] == 3.3f);
+  assert(list2.size() == 5);
+  test_passed("Float pop_at");
+
+  // Find operation
+  auto it = list2.find(3.3f);
+  assert(it != list2.end());
+  assert(*it == 3.3f);
+  test_passed("Float find");
+
+  // Min/Max
+  float min_val = list2.min();
+  float max_val = list2.max();
+  assert(min_val == 1.1f);
+  assert(max_val == 5.5f);
+  test_passed("Float min/max");
+
+  // Sort
+  float unsorted[] = {5.5f, 1.1f, 3.3f, 2.2f, 4.4f};
+  List<float> list3(unsorted, 5);
+  list3.sort();
+  assert(list3[0] == 1.1f);
+  assert(list3[1] == 2.2f);
+  assert(list3[2] == 3.3f);
+  assert(list3[3] == 4.4f);
+  assert(list3[4] == 5.5f);
+  test_passed("Float sort");
+
+  // Iterator operations
+  List<float> list4;
+  list4.push_back(10.5f);
+  list4.push_back(20.5f);
+  list4.push_back(30.5f);
+
+  float sum = 0.0f;
+  for (auto val : list4) {
+    sum += val;
+  }
+  assert(sum == 61.5f);
+  test_passed("Float iterator operations");
+
+  // Comparison
+  float arr1[] = {1.0f, 2.0f, 3.0f};
+  float arr2[] = {1.0f, 2.0f, 3.0f};
+  float arr3[] = {1.0f, 2.0f, 4.0f};
+  List<float> flist1(arr1, 3);
+  List<float> flist2(arr2, 3);
+  List<float> flist3(arr3, 3);
+
+  assert(flist1 == flist2);
+  assert(flist1 != flist3);
+  test_passed("Float comparison operators");
+
+  // Concatenation
+  List<float> flist4 = flist1 + flist3;
+  assert(flist4.size() == 6);
+  assert(flist4[0] == 1.0f);
+  assert(flist4[5] == 4.0f);
+  test_passed("Float concatenation");
+
+  // += operator
+  List<float> flist5;
+  flist5.push_back(1.5f);
+  flist5.push_back(2.5f);
+  flist5 += flist1;
+  assert(flist5.size() == 5);
+  assert(flist5[0] == 1.5f);
+  assert(flist5[4] == 3.0f);
+  test_passed("Float += operator");
+
+  // Copy constructor
+  List<float> list5(list2);
+  assert(list5.size() == list2.size());
+  assert(list5 == list2);
+  test_passed("Float copy constructor");
+
+  // Assignment operator
+  List<float> list6;
+  list6 = list2;
+  assert(list6 == list2);
+  test_passed("Float assignment operator");
+
+  // Swap
+  List<float> flist6;
+  flist6.push_back(100.0f);
+  flist6.push_back(200.0f);
+
+  List<float> flist7;
+  flist7.push_back(10.0f);
+  flist7.push_back(20.0f);
+  flist7.push_back(30.0f);
+
+  flist6.swap(flist7);
+  assert(flist6.size() == 3);
+  assert(flist6[0] == 10.0f);
+  assert(flist7.size() == 2);
+  assert(flist7[0] == 100.0f);
+  test_passed("Float swap");
+
+  // Clear
+  list2.clear();
+  assert(list2.empty());
+  assert(list2.size() == 0);
+  test_passed("Float clear");
+
+  // Push after
+  List<float> list7;
+  list7.push_back(1.0f);
+  list7.push_back(2.0f);
+  list7.push_back(3.0f);
+  list7.push_after(2.0f, 2.5f);
+  assert(list7.size() == 4);
+  assert(list7[2] == 2.5f);
+  test_passed("Float push_after");
+
+  // Pop after
+  list7.pop_after(2.0f);
+  assert(list7.size() == 3);
+  assert(list7[0] == 1.0f);
+  assert(list7[1] == 2.0f);
+  assert(list7[2] == 3.0f);
+  test_passed("Float pop_after");
+
+  // Negative floats
+  List<float> list8;
+  list8.push_back(-5.5f);
+  list8.push_back(-1.1f);
+  list8.push_back(3.3f);
+  list8.push_back(-2.2f);
+
+  assert(list8.min() == -5.5f);
+  assert(list8.max() == 3.3f);
+  test_passed("Float with negative values");
+
+  list8.sort();
+  assert(list8[0] == -5.5f);
+  assert(list8[1] == -2.2f);
+  assert(list8[2] == -1.1f);
+  assert(list8[3] == 3.3f);
+  test_passed("Float sort with negative values");
 }
 
 // Test 19: Large list operations
@@ -515,7 +839,7 @@ int main() {
   std::cout << "\n"
             << YELLOW << "╔════════════════════════════════════════╗" << RESET
             << std::endl;
-  std::cout << YELLOW << "║  Linked List Comprehensive Test Suite ║" << RESET
+  std::cout << YELLOW << "║  Linked List Comprehensive Test Suite  ║" << RESET
             << std::endl;
   std::cout << YELLOW << "╚════════════════════════════════════════╝" << RESET
             << "\n"
@@ -551,6 +875,8 @@ int main() {
 
     // Different types
     test_with_strings();
+    test_with_chars();
+    test_with_floats();
 
     // Performance and memory
     test_large_list();
