@@ -19,6 +19,7 @@
 В репозитории отчёт оформить в виде релиза, вместо обычного добавления.
 */
 
+#include <cstdint>
 #include <tuple>
 #include <vector>
 
@@ -30,9 +31,6 @@
 #include <random>
 #include <string>
 
-#include ".include/bitmatrix.hpp"
-#include ".include/bitvector.hpp"
-
 using std::vector, std::cout;
 
 // --- helper swap
@@ -42,78 +40,96 @@ template <typename T> void swap_pos(T &t1, T &t2) {
   t2 = std::move(temp);
 }
 
-int _partition(BitMatrix &matrix, int low, int high, int col) {
-  int i = low;
-  int j = high;
+void msb_radixsort(vector<int> &out) {
 
-  while (i <= j) {
-    // advance i until we find a 1 (out-of-place for left)
-    while (i <= j && !matrix[i][col])
-      ++i; // skip zeros; zeros belong left
+  if (out.empty())
+    return;
+  const uint32_t SIGN_MASK = 0x80000000u;
+  int n = out.size();
 
-    // move j left until we find a 0 (out-of-place for right)
-    while (i <= j && matrix[j][col])
-      --j; // skip ones; ones belong right
-
-    if (i < j) {
-      swap_pos(matrix[i], matrix[j]);
-      ++i;
-      --j;
-    }
+  // Create a mask for negative numbers
+  std::vector<uint32_t> keys(n);
+  for (int i = 0; i < n; ++i) {
+    keys[i] = static_cast<uint32_t>(out[i]) ^ SIGN_MASK;
   }
 
-  // j is the last index with bit == 0 (could be < low)
-  return j;
-}
+  std::vector<uint32_t> tmp(n);
 
-// Iterative MSD-style radix partition sort (sort by bits MSB->LSB).
-void msd_radix_sort(BitMatrix &matrix) {
-  int n = static_cast<int>(matrix.rows());
-  if (n <= 1)
-    return;
+  using triple = std::tuple<int, int, int>;
 
-  int ncols = static_cast<int>(matrix.columns()); // number of bits
-  if (ncols <= 0)
-    return;
-
-  // stack entries: low, high, col (col increases from MSB->LSB because MSB
-  // index = 0)
-  std::vector<std::tuple<int, int, int>> stack;
-  stack.emplace_back(0, n - 1, 0); // start at MSB (index 0)
+  vector<triple> stack;
+  stack.emplace_back(0, n, 31);
 
   while (!stack.empty()) {
-    auto [low, high, col] = stack.back();
+    auto [l, r, bit] = stack.back();
     stack.pop_back();
 
-    if (low >= high)
+    int len = r - l;
+
+    if (len <= 1 || bit < 0)
       continue;
-    if (col >= ncols)
-      continue; // no more bits
 
-    int p = _partition(matrix, low, high, col); // last idx with bit == 0
+    // mask for specific bit in number
+    uint32_t mask = 1u << bit;
 
-    // left: [low, p], right: [p+1, high]
-    int left_size = p - low + 1;         // may be 0
-    int right_size = high - (p + 1) + 1; // may be 0
-
-    // push deeper subproblems with next less-significant bit -> col+1
-    // push bigger partition first to limit stack (optional)
-    if (left_size > right_size) {
-      if (left_size > 1)
-        stack.emplace_back(low, p, col + 1);
-      if (right_size > 1)
-        stack.emplace_back(p + 1, high, col + 1);
-    } else {
-      if (right_size > 1)
-        stack.emplace_back(p + 1, high, col + 1);
-      if (left_size > 1)
-        stack.emplace_back(low, p, col + 1);
+    int zero_count = 0;
+    for (int i = l; i < r; ++i) {
+      if ((keys[i] & mask) == 0)
+        ++zero_count;
     }
+
+    // TODO: EXPLANATION
+
+    /*
+    Explanation:
+    zero count counts how many elements in the segment has the bit = 0;
+
+
+    zpos determines the starting position of zeroes
+    opos determines the starting position of ones.
+
+    simply put, if we have an array of 6 elements, 2 has the 7th bit = 0, 4 has
+    the 7th bit = 1 then zpos = 0 -> starting position of zeroes will always be
+    on the left and opos = 2 -> starting position of the ones will always be
+    after the zeroes.
+
+    next we iterate through the array from left to write, and throw everything
+    into temp while preserving order.
+
+    then we create a new partition, rinse and repeat until the stack is empty
+    (either when the bits end, or when then length is = 1)
+    */
+
+    int zpos = l;
+    int opos = l + zero_count;
+    for (int i = l; i < r; ++i) {
+      if ((keys[i] & mask) == 0)
+        tmp[zpos++] = keys[i];
+      else
+        tmp[opos++] = keys[i];
+    }
+
+    for (int i = l; i < r; ++i) {
+      keys[i] = tmp[i];
+    }
+
+    int mid = l + zero_count;
+    // CORRECT: push BOTH non-empty subsegments (right first to mimic recursion
+    // order)
+    if (mid < r)
+      stack.emplace_back(mid, r, bit - 1); // ones-group
+    if (l < mid)
+      stack.emplace_back(l, mid, bit - 1); // zeros-group
+  }
+
+  for (int i = 0; i < n; ++i) {
+    uint32_t k = keys[i] ^ SIGN_MASK;
+    out[i] = static_cast<int>(k);
   }
 }
 
 // checker
-bool is_sorted_asc(const vector<unsigned int> &a) {
+bool is_sorted_asc(const vector<int> &a) {
   for (size_t i = 1; i < a.size(); ++i)
     if (a[i - 1] > a[i])
       return false;
@@ -121,7 +137,7 @@ bool is_sorted_asc(const vector<unsigned int> &a) {
 }
 
 // deterministic dataset seed
-unsigned int datasetSeed(size_t n, int lo, int hi) {
+int datasetSeed(size_t n, int lo, int hi) {
   uint64_t s = 1469598103934665603ull;
   s ^= n;
   s *= 1099511628211ull;
@@ -129,12 +145,11 @@ unsigned int datasetSeed(size_t n, int lo, int hi) {
   s *= 1099511628211ull;
   s ^= static_cast<uint64_t>(hi ^ 0x9e3779b1);
   s *= 1099511628211ull;
-  return static_cast<unsigned int>(s & 0xFFFFFFFFu);
+  return static_cast<int>(s & 0xFFFFFFFFu);
 }
 
-vector<unsigned int> genRandomVector(size_t n, int lo, int hi,
-                                     unsigned int seed) {
-  vector<unsigned int> v;
+vector<int> genRandomVector(size_t n, int lo, int hi, int seed) {
+  vector<int> v;
   v.reserve(n);
   std::mt19937_64 rng(seed);
   std::uniform_int_distribution<int> dist(lo, hi);
@@ -143,7 +158,7 @@ vector<unsigned int> genRandomVector(size_t n, int lo, int hi,
   return v;
 }
 
-void writeVectorToTxt(const std::string &fname, const vector<unsigned int> &v) {
+void writeVectorToTxt(const std::string &fname, const vector<int> &v) {
   std::ofstream os(fname);
   if (!os)
     throw std::runtime_error("Failed to open " + fname);
@@ -153,22 +168,21 @@ void writeVectorToTxt(const std::string &fname, const vector<unsigned int> &v) {
   }
 }
 
-double timeMSD_QuickVector(const vector<unsigned int> &vec) {
-  BitMatrix dupe(vec);
+double timeMSD_QuickVector(const vector<int> &vec) {
+
+  vector<int> dupe = vec;
 
   auto start = std::chrono::steady_clock::now();
-  msd_radix_sort(dupe);
+  msb_radixsort(dupe);
   auto stop = std::chrono::steady_clock::now();
 
-  vector<unsigned int> copy = dupe.to_vec();
-
-  if (!is_sorted_asc(copy)) {
+  if (!is_sorted_asc(dupe)) {
     std::cerr << "ERROR: побитовая сортикровка produced unsorted result"
               << "\n";
     // dump few elements
-    for (size_t i = 0; i < std::min<size_t>(20, copy.size()); ++i) {
-      std::cerr << copy[i]
-                << (i + 1 == std::min<size_t>(20, copy.size()) ? '\n' : ' ');
+    for (size_t i = 0; i < std::min<size_t>(20, dupe.size()); ++i) {
+      std::cerr << dupe[i]
+                << (i + 1 == std::min<size_t>(20, dupe.size()) ? '\n' : ' ');
     }
     std::terminate();
   }
@@ -180,24 +194,24 @@ int main() {
   std::cin.tie(nullptr);
 
   const std::vector<size_t> sizes = {10000u, 100000u, 1000000u};
-  const std::vector<std::pair<unsigned int, unsigned int>> ranges = {
-      {0, 20}, {0, 2000}, {0, 200000}};
+  const std::vector<std::pair<int, int>> ranges = {
+      {-10, 10}, {-1000, 1000}, {-100000, 100000}};
 
   // CSV header
   std::ofstream csv("timings_msd_radix.csv", std::ios::out);
-  csv << "size,lo,hi,algorithm,run1_ms,run2_ms,run3_ms,mean_ms,sorted\n";
+  csv << "size;lo;hi;algorithm;run1_ms;run2_ms;run3_ms;mean_ms;sorted\n";
   csv.close();
 
   for (size_t n : sizes) {
     for (auto [lo, hi] : ranges) {
-      unsigned int seed = datasetSeed(n, lo, hi);
+      int seed = datasetSeed(n, lo, hi);
       cout << "Generating dataset n=" << n << " range=[" << lo << ',' << hi
            << "] seed=" << seed << " ...\n";
       std::string fname = "data_" + std::to_string(n) + "_" +
                           std::to_string(lo) + "_" + std::to_string(hi) +
                           ".txt";
 
-      vector<unsigned int> data = genRandomVector(n, lo, hi, seed);
+      vector<int> data = genRandomVector(n, lo, hi, seed);
       writeVectorToTxt(fname, data);
       vector<double> runs;
       runs.reserve(3);

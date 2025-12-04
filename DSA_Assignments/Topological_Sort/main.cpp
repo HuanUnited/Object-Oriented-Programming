@@ -13,6 +13,8 @@ Topological Sorting Implementation
 
 #include "acgraph.hpp"
 #include "bitmatrix.hpp"
+#include "bitvector.hpp"
+#include "dynamic_array.hpp"
 #include "linked_list.hpp"
 
 using std::vector;
@@ -62,35 +64,53 @@ List<List<int>> to_adjacency_list(std::vector<std::pair<int, int>> &_graph,
  * Time Complexity: O(V^2) where V is number of vertices
  * Space Complexity: O(V)
  */
+
+// row = from. column = to: each pair: from -> to
 void topSortMatrix(BitMatrix &matrix, vector<int> &sorted) {
   if (matrix.columns() != matrix.rows()) {
     throw std::invalid_argument("Matrix must be square");
   }
 
   int n = matrix.rows();
-  vector<int> unsorted;
+  DynamicArray<int> inA;
+  BitVector visited(n, false);
 
   for (int i = 0; i < n; i++) {
-    unsorted.push_back(i);
+    inA.push_back(i);
   }
-  while (!unsorted.empty()) {
 
-    for (int row = 0; row < n; row++) {
-      bool hasTrue = false;
+  std::cout << inA << '\n';
 
-      for (int column = 0; column < n; column++) {
-        if (matrix[row][column]) {
-          hasTrue = true;
-          break;
+  while (!inA.empty()) {
+    for (auto row : inA) {
+
+      if (visited.get(row))
+        continue;
+
+      std::cout << inA << '\n';
+      bool zeroIn = true;
+
+      for (auto column : inA) {
+        // if there is an in
+        if (matrix[row].get(column)) {
+          zeroIn = false;
         }
       }
 
-      if (!hasTrue) {
-        for (int column = 0; i < n; i++) {
-          matrix[row][column] = false;
-        }
+      // if there is zero-in
+      if (zeroIn) {
         sorted.push_back(row);
-        unsorted.erase(unsorted.begin() + row);
+        matrix[row].setAll(false);
+        inA.pop_first(row);
+        visited.set(row, true);
+
+        // Debug
+        std::cout << "--- Sorted --- \n";
+        for (auto i : sorted) {
+          std::cout << " " << i;
+        }
+        std::cout << '\n';
+        std::cout << "--- Matrix --- \n" << matrix << '\n';
       }
     }
   }
@@ -160,6 +180,86 @@ void topSortLinkedList(std::vector<std::pair<int, int>> &_graph, int nodes,
 
   // Check if topological sort is possible
   if (sorted.size() != static_cast<size_t>(nodes)) {
+    sorted.clear();
+    throw std::runtime_error(
+        "Graph contains a cycle - topological sort impossible");
+  }
+}
+
+// Top Sort Linked List Lecture
+void topSortListLecture(std::vector<std::pair<int, int>> &_graph, int nodes,
+                        vector<int> &sorted) {
+  // Clear output in case caller passed a non-empty vector
+  sorted.clear();
+
+  // Build adjacency list using LinkedList List<T>
+  List<List<int>> adj_list = to_adjacency_list(_graph, nodes);
+
+  // Calculate in-degree for each vertex
+  vector<int> in_degree(nodes, 0);
+  for (auto &edge : _graph) {
+    in_degree[edge.second]++;
+  }
+
+  // LD: list of vertices still unprocessed (lecture's LD)
+  List<int> LD;
+  for (int i = 0; i < nodes; ++i) {
+    LD.push_back(i);
+  }
+
+  // LDnew: list of vertices with in-degree == 0 (lecture's LDnew)
+  List<int> LDnew;
+
+  // Initial step: move all vertices with in-degree 0 from LD -> LDnew
+  for (auto it = LD.begin(); it != LD.end();) {
+    int v = *it;
+    if (in_degree[v] == 0) {
+      LDnew.push_back(v); // add to LDnew
+      // advance iterator before erasing current element
+      auto it_next = it;
+      ++it_next;
+      LD.pop_it(it); // erase the element 'it'
+      it = it_next;  // continue from next
+    } else {
+      ++it;
+    }
+  }
+
+  // Process LDnew until empty
+  while (!LDnew.empty()) {
+    // Pop the first element from LDnew
+    auto it_ldnew = LDnew.begin();
+    int u = *it_ldnew;
+    LDnew.pop_it(it_ldnew);
+
+    // Output u
+    sorted.push_back(u);
+
+    // For every neighbor v of u: decrement indegree, and if it becomes zero
+    // move v from LD -> LDnew
+    List<int> &neighbors = adj_list[u];
+    for (auto itn = neighbors.begin(); itn != neighbors.end(); ++itn) {
+      int v = *itn;
+      --in_degree[v];
+      if (in_degree[v] == 0) {
+        // find v in LD and remove it, then add to LDnew
+        for (auto it_ld = LD.begin(); it_ld != LD.end(); ++it_ld) {
+          if (*it_ld == v) {
+            // advance iterator before erasing
+            auto it_ld_next = it_ld;
+            ++it_ld_next;
+            LDnew.push_back(v);
+            LD.pop_it(it_ld); // remove from LD
+            // we break because we've removed v
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // If not all vertices were output, the graph contains a cycle.
+  if (static_cast<int>(sorted.size()) != nodes) {
     sorted.clear();
     throw std::runtime_error(
         "Graph contains a cycle - topological sort impossible");
@@ -240,7 +340,7 @@ int main() {
     printList(graph, nodes);
 
     // Method 1: Matrix-based (Kahn's Algorithm)
-    std::cout << "\n--- Method 1: Matrix-based Topological Sort (Kahn) ---\n";
+    std::cout << "\n--- Method 1: Matrix-based Topological Sort (Kahn)---\n";
     BitMatrix matrix = to_matrix(graph, nodes);
     std::cout << "Adjacency Matrix:\n" << matrix << "\n";
 
@@ -261,6 +361,16 @@ int main() {
 
     bool valid_list = verify_topological_sort(graph, sorted_list);
     std::cout << "Verification: " << (valid_list ? "✓ VALID" : "✗ INVALID")
+              << "\n";
+
+    // Method 3: Linked List-lecture
+    std::cout << "\n --- Method 3: Lecture Leader Trailer --- \n";
+    vector<int> sorted_lecture;
+    topSortListLecture(graph, nodes, sorted_lecture);
+    print_sorted(sorted_lecture);
+
+    bool valid_lecture = verify_topological_sort(graph, sorted_lecture);
+    std::cout << "Verification: " << (valid_lecture ? "VALID" : "INVALID")
               << "\n";
 
     // Test with manual graph
