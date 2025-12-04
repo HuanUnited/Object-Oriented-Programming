@@ -48,6 +48,23 @@ List<List<int>> to_adjacency_list(std::vector<std::pair<int, int>> &_graph,
   return adj_list;
 }
 
+List<List<int>> to_in_list(std::vector<std::pair<int, int>> &_graph,
+                           int nodes) {
+  List<List<int>> out_list;
+  // Initialize empty lists for each node
+  for (int i = 0; i < nodes; i++) {
+    out_list.push_back(List<int>());
+  }
+
+  // Add edges to adjacency list
+  for (auto edge : _graph) {
+    int from = edge.first;
+    int to = edge.second;
+    out_list[to].push_back(from);
+  }
+  return out_list;
+}
+
 /**
  * Topological Sort using Boolean Matrix (Kahn's Algorithm)
  *
@@ -72,45 +89,40 @@ void topSortMatrix(BitMatrix &matrix, vector<int> &sorted) {
   }
 
   int n = matrix.rows();
-  DynamicArray<int> inA;
-  BitVector visited(n, false);
 
+  DynamicArray<int> inA;
   for (int i = 0; i < n; i++) {
     inA.push_back(i);
   }
 
-  std::cout << inA << '\n';
+  // std::cout << inA << '\n';
 
   while (!inA.empty()) {
-    for (auto row : inA) {
 
-      if (visited.get(row))
-        continue;
+    for (auto column : inA) {
+      bool noTrue{true};
 
-      std::cout << inA << '\n';
-      bool zeroIn = true;
-
-      for (auto column : inA) {
-        // if there is an in
-        if (matrix[row].get(column)) {
-          zeroIn = false;
-        }
+      for (int i = 0; i < n; i++) {
+        if (matrix[i].get(column) == true) {
+          noTrue = false;
+          break;
+        };
       }
 
-      // if there is zero-in
-      if (zeroIn) {
-        sorted.push_back(row);
-        matrix[row].setAll(false);
-        inA.pop_first(row);
-        visited.set(row, true);
+      if (noTrue) {
+        sorted.push_back(column);
+        matrix[column].setAll(false);
+        inA.pop_first(column);
+        break;
 
-        // Debug
-        std::cout << "--- Sorted --- \n";
-        for (auto i : sorted) {
-          std::cout << " " << i;
-        }
-        std::cout << '\n';
-        std::cout << "--- Matrix --- \n" << matrix << '\n';
+        // // Debug
+        // std::cout << "--- inA --- \n" << inA << '\n';
+        // std::cout << "--- Sorted --- \n";
+        // for (auto i : sorted) {
+        //   std::cout << " " << i;
+        // }
+        // std::cout << '\n';
+        // std::cout << "--- Matrix --- \n" << matrix << '\n';
       }
     }
   }
