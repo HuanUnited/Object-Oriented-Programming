@@ -236,6 +236,12 @@ void CharacterSet::print2() const {
   std::cout << "}";
 }
 
+void CharacterSet::scan() {
+  CharacterSet out;
+  std::cin >> out;
+  *this = out;
+}
+
 // Stream output operator
 std::ostream &operator<<(std::ostream &os, const CharacterSet &cs) {
   cs.print(os);

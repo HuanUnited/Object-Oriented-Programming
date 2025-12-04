@@ -62,6 +62,7 @@ public:
   void print(std::ostream &os) const;
 
   virtual void print2() const override;
+  virtual void scan() override;
 };
 
 // Stream operators (non-member)

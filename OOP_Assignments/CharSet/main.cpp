@@ -103,16 +103,30 @@ int main() {
   std::cout << "set10 == set2: " << (set10 == set2 ? "yes" : "no") << std::endl;
   std::cout << std::endl;
 
+  // Test 12: Print + Scan
+  // BitVector printvector(8, false);
+  // CharacterSet printset("abfjdishjsfd");
+  std::cout << "Test 12: Print + Scan" << std::endl;
+  BitVector printvector;
+  CharacterSet printset;
+
+  BitVector *ptr = &printvector;
+
+  // 000000000
+  std::cout << "Insert BitVector: ";
+  ptr->scan();
+  ptr->print2();
+  std::cout << std::endl;
+
+  ptr = &printset;
+
+  // dadskadjlajdklsa
+  std::cout << "Insert CharacterSet: ";
+  ptr->scan();
+  ptr->print2();
+  std::cout << std::endl;
+
   std::cout << "=== All tests completed ===" << std::endl;
-
-  // Test 12: Print
-  BitVector printvector(8, false);
-  CharacterSet printset("abfjdishjsfd");
-
-  printset.print2();
-  std::cout << std::endl;
-  printvector.print2();
-  std::cout << std::endl;
 
   return 0;
 }

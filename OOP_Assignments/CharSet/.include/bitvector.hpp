@@ -96,6 +96,7 @@ public:
   BitVector &operator>>=(const size_t off);
 
   virtual void print2() const;
+  virtual void scan();
 
 protected:
   // Changed from private to protected for inheritance

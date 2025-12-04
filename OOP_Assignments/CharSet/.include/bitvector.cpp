@@ -308,6 +308,29 @@ void BitVector::print2() const {
   std::cout << "]";
 }
 
+void BitVector::scan() {
+  std::string s;
+  std::cin >> s;
+
+  // Validate input: only '0' and '1'
+  for (char c : s) {
+    if (c != '0' && c != '1') {
+      throw std::invalid_argument(
+          "Input must be a bitstring containing only '0' or '1'.");
+    }
+  }
+
+  // If the input length differs, re-size the vector
+  if (s.size() != nbits) {
+    *this = BitVector(s.size());
+  }
+
+  // Set bits accordingly
+  for (size_t i = 0; i < s.size(); ++i) {
+    set(i, s[i] == '1');
+  }
+}
+
 // -- stream operators --
 std::ostream &operator<<(std::ostream &os, const BitVector &bv) {
   for (size_t i = 0; i < bv.size(); ++i)
