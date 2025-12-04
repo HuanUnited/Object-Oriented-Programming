@@ -300,6 +300,14 @@ BitVector &BitVector::operator>>=(const size_t off) {
   return *this;
 }
 
+// Virtual print method for polymorphic output
+void BitVector::print2() const {
+  std::cout << "[";
+  for (size_t i = 0; i < size(); ++i)
+    std::cout << (get(i) ? '1' : '0');
+  std::cout << "]";
+}
+
 // -- stream operators --
 std::ostream &operator<<(std::ostream &os, const BitVector &bv) {
   for (size_t i = 0; i < bv.size(); ++i)

@@ -213,6 +213,29 @@ void CharacterSet::print(std::ostream &os) const {
   os << "}";
 }
 
+// Polymorphic print
+void CharacterSet::print2() const {
+  std::cout << "{";
+  bool first = true;
+  for (uint32_t i = 0; i < 256; ++i) {
+    if (get(i)) {
+      if (!first) {
+        std::cout << ", ";
+      }
+
+      char ch = static_cast<char>(i);
+      // Print printable characters as-is, others as numeric codes
+      if (ch >= 32 && ch <= 126) {
+        std::cout << "'" << ch << "'";
+      } else {
+        std::cout << static_cast<int>(i);
+      }
+      first = false;
+    }
+  }
+  std::cout << "}";
+}
+
 // Stream output operator
 std::ostream &operator<<(std::ostream &os, const CharacterSet &cs) {
   cs.print(os);

@@ -1,5 +1,7 @@
 #include "./.include/charset.hpp"
+#include "bitvector.hpp"
 #include <iostream>
+#include <ostream>
 
 int main() {
   std::cout << "=== CharacterSet Testing ===" << std::endl << std::endl;
@@ -102,6 +104,15 @@ int main() {
   std::cout << std::endl;
 
   std::cout << "=== All tests completed ===" << std::endl;
+
+  // Test 12: Print
+  BitVector printvector(8, false);
+  CharacterSet printset("abfjdishjsfd");
+
+  printset.print2();
+  std::cout << std::endl;
+  printvector.print2();
+  std::cout << std::endl;
 
   return 0;
 }

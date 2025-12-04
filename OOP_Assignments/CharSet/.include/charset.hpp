@@ -59,7 +59,9 @@ public:
   CharacterSet &operator-=(char element);
 
   // Virtual print method for polymorphic output
-  virtual void print(std::ostream &os) const;
+  void print(std::ostream &os) const;
+
+  virtual void print2() const override;
 };
 
 // Stream operators (non-member)

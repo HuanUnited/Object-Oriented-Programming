@@ -95,6 +95,8 @@ public:
   BitVector operator>>(const size_t off) const;
   BitVector &operator>>=(const size_t off);
 
+  virtual void print2() const;
+
 protected:
   // Changed from private to protected for inheritance
   std::unique_ptr<byte_t[]> data;
