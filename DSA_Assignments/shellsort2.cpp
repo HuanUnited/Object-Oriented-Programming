@@ -140,8 +140,9 @@ vector<int> make_gaps(size_t n, GapType gtype) {
 }
 
 // Simple Insertion Sort with comparison counting
-long long insertion_sort_inplace(vector<int> &a) {
+std::pair<long long, long long> insertion_sort_inplace(vector<int> &a) {
   long long comparisons = 0;
+  long long swaps = 0;
   size_t n = a.size();
 
   for (size_t i = 1; i < n; ++i) {
@@ -151,6 +152,8 @@ long long insertion_sort_inplace(vector<int> &a) {
       comparisons++; // count the comparison
       if (a[j - 1] > tmp) {
         a[j] = a[j - 1];
+        // count the swaps
+        swaps++;
         j--;
       } else {
         break;
@@ -159,13 +162,14 @@ long long insertion_sort_inplace(vector<int> &a) {
     a[j] = tmp;
   }
 
-  return comparisons;
+  return {comparisons, swaps};
 }
 
 // Shell (gapped insertion) sort in-place with comparison counting
-long long shell_sort_inplace(vector<int> &a, GapType gtype,
-                             bool print_gaps = false) {
+std::pair<long long, long long>
+shell_sort_inplace(vector<int> &a, GapType gtype, bool print_gaps = false) {
   long long comparisons = 0;
+  long long swaps = 0;
   size_t n = a.size();
   vector<int> gaps = make_gaps(n, gtype);
 
@@ -189,6 +193,8 @@ long long shell_sort_inplace(vector<int> &a, GapType gtype,
         comparisons++; // count the comparison
         if (a[j - gap] > tmp) {
           a[j] = a[j - gap];
+          // count the swaps:
+          swaps++;
           j -= gap;
         } else {
           break;
@@ -198,7 +204,7 @@ long long shell_sort_inplace(vector<int> &a, GapType gtype,
     }
   }
 
-  return comparisons;
+  return {comparisons, swaps};
 }
 
 // checker
@@ -244,12 +250,13 @@ void writeVectorToTxt(const string &fname, const vector<int> &v) {
 struct SortResult {
   double time_ms;
   long long comparisons;
+  long long swaps;
 };
 
 SortResult timeShellOnVector(const vector<int> &vec, GapType gtype) {
   vector<int> copy = vec;
   auto start = chrono::steady_clock::now();
-  long long comps = shell_sort_inplace(copy, gtype, false);
+  auto [comps, swaps] = shell_sort_inplace(copy, gtype, false);
   auto stop = chrono::steady_clock::now();
 
   if (!is_sorted_asc(copy)) {
@@ -261,13 +268,14 @@ SortResult timeShellOnVector(const vector<int> &vec, GapType gtype) {
   SortResult result;
   result.time_ms = chrono::duration<double, milli>(stop - start).count();
   result.comparisons = comps;
+  result.swaps = swaps;
   return result;
 }
 
 SortResult timeInsertionOnVector(const vector<int> &vec) {
   vector<int> copy = vec;
   auto start = chrono::steady_clock::now();
-  long long comps = insertion_sort_inplace(copy);
+  auto [comps, swaps] = insertion_sort_inplace(copy);
   auto stop = chrono::steady_clock::now();
 
   if (!is_sorted_asc(copy)) {
@@ -278,6 +286,7 @@ SortResult timeInsertionOnVector(const vector<int> &vec) {
   SortResult result;
   result.time_ms = chrono::duration<double, milli>(stop - start).count();
   result.comparisons = comps;
+  result.swaps = swaps;
   return result;
 }
 
@@ -297,7 +306,8 @@ int main() {
   // CSV header
   ofstream csv("timings_shell.csv", ios::out);
   csv << "size,lo,hi,algorithm,run1_ms,run2_ms,run3_ms,mean_ms,run1_comps,run2_"
-         "comps,run3_comps,mean_comps,sorted\n";
+         "comps,run3_comps,mean_comps,run1_swaps,run2_swaps,run3_swaps,mean_"
+         "swaps,sorted\n";
   csv.close();
 
   for (size_t n : sizes) {
@@ -318,6 +328,7 @@ int main() {
       bool run_insertion = (n <= INSERTION_SORT_MAX_SIZE);
       double ins_mean_time = 0.0;
       double ins_mean_comps = 0.0;
+      double ins_mean_swaps = 0.0;
 
       if (run_insertion) {
         // Run Insertion Sort
@@ -329,7 +340,8 @@ int main() {
           SortResult res = timeInsertionOnVector(data);
           insertion_runs.push_back(res);
           cout << "\r    Run " << (r + 1) << ": " << fixed << setprecision(2)
-               << res.time_ms << " ms (" << res.comparisons << " comps)\n";
+               << res.time_ms << " ms (" << res.comparisons << " comps, "
+               << res.swaps << " swaps)\n";
         }
         ins_mean_time = (insertion_runs[0].time_ms + insertion_runs[1].time_ms +
                          insertion_runs[2].time_ms) /
@@ -338,9 +350,13 @@ int main() {
             (insertion_runs[0].comparisons + insertion_runs[1].comparisons +
              insertion_runs[2].comparisons) /
             3.0;
+        ins_mean_swaps = (insertion_runs[0].swaps + insertion_runs[1].swaps +
+                          insertion_runs[2].swaps) /
+                         3.0;
         cout << "    >> Mean: " << fixed << setprecision(2) << ins_mean_time
              << " ms (" << fixed << setprecision(0) << ins_mean_comps
-             << " comps)\n";
+             << " comps, " << fixed << setprecision(0) << ins_mean_swaps
+             << " swaps)\n";
 
         ofstream csv_append("timings_shell.csv", ios::app);
         csv_append << n << ',' << lo << ',' << hi << ",InsertionSort," << fixed
@@ -350,7 +366,10 @@ int main() {
                    << insertion_runs[0].comparisons << ','
                    << insertion_runs[1].comparisons << ','
                    << insertion_runs[2].comparisons << ','
-                   << (long long)ins_mean_comps << ",1\n";
+                   << (long long)ins_mean_comps << ','
+                   << insertion_runs[0].swaps << ',' << insertion_runs[1].swaps
+                   << ',' << insertion_runs[2].swaps << ','
+                   << (long long)ins_mean_swaps << ",1\n";
         csv_append.close();
       } else {
         cout << "\n  Algorithm: Insertion Sort\n";
@@ -368,22 +387,26 @@ int main() {
           SortResult res = timeShellOnVector(data, g);
           runs.push_back(res);
           cout << "\r    Run " << (r + 1) << ": " << fixed << setprecision(2)
-               << res.time_ms << " ms (" << res.comparisons << " comps)\n";
+               << res.time_ms << " ms (" << res.comparisons << " comps, "
+               << res.swaps << " swaps)\n";
         }
         double mean_time =
             (runs[0].time_ms + runs[1].time_ms + runs[2].time_ms) / 3.0;
         double mean_comps =
             (runs[0].comparisons + runs[1].comparisons + runs[2].comparisons) /
             3.0;
+        double means_swaps =
+            (runs[0].swaps + runs[1].swaps + runs[2].swaps) / 3.0;
         cout << "    >> Mean: " << fixed << setprecision(2) << mean_time
-             << " ms (" << fixed << setprecision(0) << mean_comps
-             << " comps) | ";
+             << " ms (" << fixed << setprecision(0) << mean_comps << " comps, "
+             << fixed << setprecision(0) << means_swaps << " swaps) | ";
 
         // Calculate speedup vs insertion sort
         double speedup = ins_mean_time / mean_time;
         double comp_ratio = ins_mean_comps / mean_comps;
+        double swap_ratio = ins_mean_swaps / means_swaps;
         cout << "Speedup: " << fixed << setprecision(2) << speedup << "x time, "
-             << comp_ratio << "x comps\n";
+             << comp_ratio << "x comps, " << swap_ratio << "x less swaps\n";
 
         ofstream csv_append2("timings_shell.csv", ios::app);
         csv_append2 << n << ',' << lo << ',' << hi << ',' << gapName(g) << ','
@@ -391,7 +414,9 @@ int main() {
                     << runs[1].time_ms << ',' << runs[2].time_ms << ','
                     << mean_time << ',' << runs[0].comparisons << ','
                     << runs[1].comparisons << ',' << runs[2].comparisons << ','
-                    << (long long)mean_comps << ",1\n";
+                    << (long long)mean_comps << ',' << runs[0].swaps << ','
+                    << runs[1].swaps << ',' << runs[2].swaps << ','
+                    << means_swaps << ",1\n";
         csv_append2.close();
       }
     }
